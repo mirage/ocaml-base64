@@ -19,7 +19,6 @@ opam --version
 opam --git-version
 
 opam init git://github.com/ocaml/opam-repository >/dev/null 2>&1
-
 eval `opam config env`
 make
 make install
