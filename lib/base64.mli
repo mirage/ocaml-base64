@@ -19,12 +19,19 @@
 
 (** Base64 is a group of similar binary-to-text encoding schemes that represent
     binary data in an ASCII string format by translating it into a radix-64
-    representation.  It is specified in RFC 2045. *)
+    representation.  It is specified in RFC 3986. *)
+
+(** A 64-character string specifying the regular Base64 alphabet. *)
+val default_alphabet : string
+
+(** A 64-character string specifying the URI- and filename-safe Base64
+    alphabet. *)
+val uri_safe_alphabet : string
 
 (** [decode s] decodes the string [s] that is encoded in base64 format.
     Will leave trailing NULLs on the string, padding it out to a multiple
     of 3 characters. *)
-val decode: string -> string
+val decode : ?alphabet:string -> string -> string
 
 (** Encodes a string into base64. *)
-val encode: string -> string
+val encode : ?alphabet:string -> string -> string
