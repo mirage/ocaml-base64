@@ -28,6 +28,11 @@ let to_char ?(alphabet=default_alphabet) x =
 
 let decode ?alphabet input =
   let length = String.length input in
+  let input =
+    if length mod 4 = 0 then input
+    else input ^ (String.make (4 - length mod 4) padding)
+  in
+  let length = String.length input in
   let words = length / 4 in
   let padding =
     match length with
@@ -54,7 +59,7 @@ let decode ?alphabet input =
   done;
   Bytes.unsafe_to_string output
 
-let encode ?alphabet input =
+let encode ?(pad=true) ?alphabet input =
   let length = String.length input in
   let words = (length + 2) / 3 in (* rounded up *)
   let padding_len = if length mod 3 = 0 then 0 else 3 - (length mod 3) in
@@ -77,4 +82,5 @@ let encode ?alphabet input =
   for i = 1 to padding_len do
     Bytes.set output (Bytes.length output - i) padding;
   done;
-  Bytes.unsafe_to_string output
+  if pad then Bytes.unsafe_to_string output
+  else Bytes.sub_string output 0 (Bytes.length output - padding_len)

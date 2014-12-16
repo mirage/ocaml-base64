@@ -30,8 +30,9 @@ val uri_safe_alphabet : string
 
 (** [decode s] decodes the string [s] that is encoded in base64 format.
     Will leave trailing NULLs on the string, padding it out to a multiple
-    of 3 characters. *)
+    of 3 characters.  *)
 val decode : ?alphabet:string -> string -> string
 
-(** Encodes a string into base64. *)
-val encode : ?alphabet:string -> string -> string
+(** [encode s] encodes the string [s] into base64. If [pad] is false,
+    no trailing padding is added. *)
+val encode : ?pad:bool -> ?alphabet:string -> string -> string
