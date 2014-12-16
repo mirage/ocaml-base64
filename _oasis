@@ -10,3 +10,4 @@ BuildTools:  ocamlbuild
 Library base64
   Path: lib
   Modules: Base64
+  BuildDepends: bytes

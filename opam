@@ -13,4 +13,5 @@ remove: [
 ]
 depends: [
   "ocamlfind"
+  "base-bytes"
 ]
