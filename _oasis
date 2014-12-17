@@ -1,6 +1,6 @@
 OASISFormat: 0.4
 Name:        base64
-Version:     1.0.0
+Version:     1.1.0
 Synopsis:    Base64 encoding library
 Authors:     Thomas Gazagnaire, Anil Madhavapeddy
 License:     ISC
