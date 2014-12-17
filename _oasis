@@ -2,7 +2,7 @@ OASISFormat: 0.4
 Name:        base64
 Version:     1.1.0
 Synopsis:    Base64 encoding library
-Authors:     Thomas Gazagnaire, Anil Madhavapeddy
+Authors:     Thomas Gazagnaire, Anil Madhavapeddy, Peter Zotov
 License:     ISC
 Plugins:     META (0.4), DevFiles (0.4)
 BuildTools:  ocamlbuild
