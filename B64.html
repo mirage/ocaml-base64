@@ -1,0 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="Up" href="index.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="B64" rel="Chapter" href="B64.html"><title>B64</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;</div>
+<h1>Module <a href="type_B64.html">B64</a></h1>
+
+<pre><span class="keyword">module</span> B64: <code class="code"><span class="keyword">sig</span></code> <a href="B64.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
+Base64 is a group of similar binary-to-text encoding schemes that represent
+    binary data in an ASCII string format by translating it into a radix-64
+    representation.  It is specified in RFC 4648.<br>
+</div>
+<hr width="100%">
+
+<pre><span id="VALdefault_alphabet"><span class="keyword">val</span> default_alphabet</span> : <code class="type">string</code></pre><div class="info ">
+A 64-character string specifying the regular Base64 alphabet.<br>
+</div>
+
+<pre><span id="VALuri_safe_alphabet"><span class="keyword">val</span> uri_safe_alphabet</span> : <code class="type">string</code></pre><div class="info ">
+A 64-character string specifying the URI- and filename-safe Base64
+    alphabet.<br>
+</div>
+
+<pre><span id="VALdecode"><span class="keyword">val</span> decode</span> : <code class="type">?alphabet:string -> string -> string</code></pre><div class="info ">
+<code class="code">decode s</code> decodes the string <code class="code">s</code> that is encoded in base64 format.
+    Will leave trailing NULLs on the string, padding it out to a multiple
+    of 3 characters.<br>
+</div>
+
+<pre><span id="VALencode"><span class="keyword">val</span> encode</span> : <code class="type">?pad:bool -> ?alphabet:string -> string -> string</code></pre><div class="info ">
+<code class="code">encode s</code> encodes the string <code class="code">s</code> into base64. If <code class="code">pad</code> is false,
+    no trailing padding is added.<br>
+</div>
+</body></html>
