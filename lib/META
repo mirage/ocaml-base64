@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: d900c0db6c33f5db7083c274080c31f6)
-version = "1.1.0"
+# DO NOT EDIT (digest: 7c89ecbf231e96fc39574897c8f1b40a)
+version = "2.0.0"
 description = "Base64 encoding library"
 requires = "bytes"
 archive(byte) = "base64.cma"
