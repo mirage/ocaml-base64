@@ -1,6 +1,4 @@
 opam-version: "1.2"
-name: "base64"
-version: "2.0.0"
 maintainer: "mirageos-devel@lists.xenproject.org"
 authors: [ "Thomas Gazagnaire"
            "Anil Madhavapeddy"
@@ -10,18 +8,9 @@ homepage: "https://github.com/mirage/ocaml-base64"
 doc: "http://mirage.github.io/ocaml-bytes"
 bug-reports: "https://github.com/mirage/ocaml-base64/issues"
 dev-repo: "git://github.com/mirage/ocaml-base64.git"
-build: [
-  ["ocaml" "setup.ml" "-configure" "--prefix" prefix]
-  ["ocaml" "setup.ml" "-build"]
-  ["ocaml" "setup.ml" "-install"]
-]
-build-doc: [
-  ["ocaml" "setup.ml" "-doc"]
-]
-remove: [
-  ["ocamlfind" "remove" "base64"]
-]
 depends: [
-  "ocamlfind"  {build}
+  "ocamlfind" {build}
+  "ocamlbuild" {build}
   "base-bytes"
-]
+  "topkg" {build} ]
+build: [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" ]
