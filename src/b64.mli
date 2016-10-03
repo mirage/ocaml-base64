@@ -1,7 +1,7 @@
 (*
  * Copyright (c) 2006-2009 Citrix Systems Inc.
  * Copyright (c) 2010 Thomas Gazagnaire <thomas@gazagnaire.com>
- * Copyright (c) 2014 Anil Madhavapeddy <anil@recoil.org>
+ * Copyright (c) 2014-2016 Anil Madhavapeddy <anil@recoil.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,7 +17,9 @@
  *
  *)
 
-(** Base64 is a group of similar binary-to-text encoding schemes that represent
+(** Base64 RFC4648 implementation.
+
+    Base64 is a group of similar binary-to-text encoding schemes that represent
     binary data in an ASCII string format by translating it into a radix-64
     representation.  It is specified in RFC 4648. *)
 
@@ -28,11 +30,13 @@ val default_alphabet : string
     alphabet. *)
 val uri_safe_alphabet : string
 
-(** [decode s] decodes the string [s] that is encoded in base64 format.
+(** [decode s] decodes the string [s] that is encoded in Base64 format.
     Will leave trailing NULLs on the string, padding it out to a multiple
-    of 3 characters.  *)
+    of 3 characters. [alphabet] defaults to {!default_alphabet}.
+    @raise Not_found if [s] is not a valid Base64 string.  *)
 val decode : ?alphabet:string -> string -> string
 
 (** [encode s] encodes the string [s] into base64. If [pad] is false,
-    no trailing padding is added. *)
+    no trailing padding is added.
+    [pad] defaults to [true], and [alphabet] to {!default_alphabet}. *)
 val encode : ?pad:bool -> ?alphabet:string -> string -> string
