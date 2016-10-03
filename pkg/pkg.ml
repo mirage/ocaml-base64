@@ -5,4 +5,5 @@ open Topkg
 
 let () =
   Pkg.describe "base64" @@ fun c ->
-  Ok [ Pkg.mllib "src/b64.mllib" ]
+  Ok [ Pkg.mllib "src/b64.mllib";
+       Pkg.test "test/test" ]
