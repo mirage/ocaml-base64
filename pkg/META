@@ -1,0 +1,8 @@
+version = "%%VERSION%%"
+description = "Base64 encoding library"
+requires = "bytes"
+archive(byte) = "b64.cma"
+archive(byte, plugin) = "b64.cma"
+archive(native) = "b64.cmxa"
+archive(native, plugin) = "b64.cmxs"
+exists_if = "b64.cma"
