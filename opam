@@ -9,8 +9,16 @@ doc: "http://mirage.github.io/ocaml-bytes"
 bug-reports: "https://github.com/mirage/ocaml-base64/issues"
 dev-repo: "git://github.com/mirage/ocaml-base64.git"
 depends: [
+  "base-bytes"
   "ocamlfind" {build}
   "ocamlbuild" {build}
-  "base-bytes"
-  "topkg" {build} ]
-build: [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" ]
+  "topkg" {build} 
+  "bos" {test}
+  "rresult" {test}
+  "alcotest" {test}
+]
+build: [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "false" ]
+build-test: [
+  [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "true" ]
+  [ "ocaml" "pkg/pkg.ml" "test" ]
+]
