@@ -1,4 +1,4 @@
-version = "%%VERSION%%"
+version = "%%VERSION_NUM%%"
 description = "Base64 encoding library"
 requires = "bytes"
 archive(byte) = "b64.cma"
