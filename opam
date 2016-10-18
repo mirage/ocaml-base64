@@ -7,7 +7,7 @@ license: "ISC"
 homepage: "https://github.com/mirage/ocaml-base64"
 doc: "http://mirage.github.io/ocaml-base64/"
 bug-reports: "https://github.com/mirage/ocaml-base64/issues"
-dev-repo: "git://github.com/mirage/ocaml-base64.git"
+dev-repo: "https://github.com/mirage/ocaml-base64.git"
 depends: [
   "base-bytes"
   "ocamlfind" {build}
