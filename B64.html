@@ -15,7 +15,10 @@
 <h1>Module <a href="type_B64.html">B64</a></h1>
 
 <pre><span class="keyword">module</span> B64: <code class="code"><span class="keyword">sig</span></code> <a href="B64.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
-Base64 is a group of similar binary-to-text encoding schemes that represent
+Base64 RFC4648 implementation.
+<p>
+
+    Base64 is a group of similar binary-to-text encoding schemes that represent
     binary data in an ASCII string format by translating it into a radix-64
     representation.  It is specified in RFC 4648.<br>
 </div>
@@ -31,13 +34,15 @@ A 64-character string specifying the URI- and filename-safe Base64
 </div>
 
 <pre><span id="VALdecode"><span class="keyword">val</span> decode</span> : <code class="type">?alphabet:string -> string -> string</code></pre><div class="info ">
-<code class="code">decode s</code> decodes the string <code class="code">s</code> that is encoded in base64 format.
+<code class="code">decode s</code> decodes the string <code class="code">s</code> that is encoded in Base64 format.
     Will leave trailing NULLs on the string, padding it out to a multiple
-    of 3 characters.<br>
+    of 3 characters. <code class="code">alphabet</code> defaults to <a href="B64.html#VALdefault_alphabet"><code class="code"><span class="constructor">B64</span>.default_alphabet</code></a>.<br>
+<b>Raises</b> <code>Not_found</code> if <code class="code">s</code> is not a valid Base64 string.<br>
 </div>
 
 <pre><span id="VALencode"><span class="keyword">val</span> encode</span> : <code class="type">?pad:bool -> ?alphabet:string -> string -> string</code></pre><div class="info ">
 <code class="code">encode s</code> encodes the string <code class="code">s</code> into base64. If <code class="code">pad</code> is false,
-    no trailing padding is added.<br>
+    no trailing padding is added.
+    <code class="code">pad</code> defaults to <code class="code"><span class="keyword">true</span></code>, and <code class="code">alphabet</code> to <a href="B64.html#VALdefault_alphabet"><code class="code"><span class="constructor">B64</span>.default_alphabet</code></a>.<br>
 </div>
 </body></html>
