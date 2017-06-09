@@ -1,5 +1,0 @@
-true : annot, bin_annot, safe_string, package(bytes)
-true : principal, debug
-<test/*> : package(alcotest bos rresult)
-<src> : include
-<test> : include

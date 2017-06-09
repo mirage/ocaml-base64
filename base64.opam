@@ -10,15 +10,15 @@ bug-reports: "https://github.com/mirage/ocaml-base64/issues"
 dev-repo: "https://github.com/mirage/ocaml-base64.git"
 depends: [
   "base-bytes"
-  "ocamlfind" {build}
-  "ocamlbuild" {build}
-  "topkg" {build}
+  "jbuilder" {build}
   "bos" {test}
   "rresult" {test}
   "alcotest" {test}
 ]
-build: [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "false" ]
+build: [
+  ["jbuilder" "subst"] {pinned}
+  ["jbuilder" "build" "-p" name "-j" jobs]
+]
 build-test: [
-  [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "true" ]
-  [ "ocaml" "pkg/pkg.ml" "test" ]
+  ["jbuilder" "runtest" "-p" name]
 ]
