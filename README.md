@@ -8,7 +8,7 @@ representation.  It is specified in [RFC 4648][rfc4648].
 See also [documentation][docs].
 
 [rfc4648]: https://tools.ietf.org/html/rfc4648
-[docs]: http://mirage.github.io/ocaml-base64
+[docs]: http://mirage.github.io/ocaml-base64/base64/
 
 ## Example
 
