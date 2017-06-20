@@ -10,7 +10,7 @@ bug-reports: "https://github.com/mirage/ocaml-base64/issues"
 dev-repo: "https://github.com/mirage/ocaml-base64.git"
 depends: [
   "base-bytes"
-  "jbuilder" {build}
+  "jbuilder" {build & >= "1.0+beta10"}
   "bos" {test}
   "rresult" {test}
   "alcotest" {test}
