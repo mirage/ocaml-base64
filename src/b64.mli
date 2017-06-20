@@ -21,7 +21,10 @@
 
     Base64 is a group of similar binary-to-text encoding schemes that represent
     binary data in an ASCII string format by translating it into a radix-64
-    representation.  It is specified in RFC 4648. *)
+    representation.  It is specified in RFC 4648.
+
+   {e Release %%VERSION%% - %%PKG_HOMEPAGE%% }
+*)
 
 (** A 64-character string specifying the regular Base64 alphabet. *)
 val default_alphabet : string
