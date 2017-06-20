@@ -1,3 +1,7 @@
+### v.2.2.0 (2017-06-20)
+
+* Switch to jbuilder (#13, @rgrinberg)
+
 ### v2.1.2 (2016-10-18)
 
 * Fix version number (#11, @hannesm)
