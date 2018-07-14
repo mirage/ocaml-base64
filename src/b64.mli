@@ -39,6 +39,9 @@ val uri_safe_alphabet : string
     @raise Not_found if [s] is not a valid Base64 string.  *)
 val decode : ?alphabet:string -> string -> string
 
+(** Same as [decode], but returns [None] instead of raising. *)
+val decode_opt : ?alphabet:string -> string -> string option
+
 (** [encode s] encodes the string [s] into base64. If [pad] is false,
     no trailing padding is added.
     [pad] defaults to [true], and [alphabet] to {!default_alphabet}. *)

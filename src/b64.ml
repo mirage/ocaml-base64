@@ -59,6 +59,12 @@ let decode ?alphabet input =
   done;
   Bytes.unsafe_to_string output
 
+let decode_opt ?alphabet input =
+  try
+    Some (decode ?alphabet input)
+  with
+    Not_found -> None
+
 let encode ?(pad=true) ?alphabet input =
   let length = String.length input in
   let words = (length + 2) / 3 in (* rounded up *)
