@@ -21,28 +21,27 @@
 
     Base64 is a group of similar binary-to-text encoding schemes that represent
     binary data in an ASCII string format by translating it into a radix-64
-    representation.  It is specified in RFC 4648.
+    representation. It is specified in RFC 4648.
 
-   {e Release %%VERSION%% - %%PKG_HOMEPAGE%% }
-*)
+    {e Release %%VERSION%% - %%PKG_HOMEPAGE%%} *)
 
-(** A 64-character string specifying the regular Base64 alphabet. *)
 val default_alphabet : string
+(** A 64-character string specifying the regular Base64 alphabet. *)
 
+val uri_safe_alphabet : string
 (** A 64-character string specifying the URI- and filename-safe Base64
     alphabet. *)
-val uri_safe_alphabet : string
 
-(** [decode s] decodes the string [s] that is encoded in Base64 format.
-    Will leave trailing NULLs on the string, padding it out to a multiple
-    of 3 characters. [alphabet] defaults to {!default_alphabet}.
-    @raise Not_found if [s] is not a valid Base64 string.  *)
 val decode : ?alphabet:string -> string -> string
+(** [decode s] decodes the string [s] that is encoded in Base64 format. Will
+    leave trailing NULLs on the string, padding it out to a multiple of 3
+    characters. [alphabet] defaults to {!default_alphabet}.
+    @raise Not_found if [s] is not a valid Base64 string. *)
 
-(** Same as [decode], but returns [None] instead of raising. *)
 val decode_opt : ?alphabet:string -> string -> string option
+(** Same as [decode], but returns [None] instead of raising. *)
 
-(** [encode s] encodes the string [s] into base64. If [pad] is false,
-    no trailing padding is added.
-    [pad] defaults to [true], and [alphabet] to {!default_alphabet}. *)
 val encode : ?pad:bool -> ?alphabet:string -> string -> string
+(** [encode s] encodes the string [s] into base64. If [pad] is false, no
+    trailing padding is added. [pad] defaults to [true], and [alphabet] to
+    {!default_alphabet}. *)

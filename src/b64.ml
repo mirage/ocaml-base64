@@ -67,8 +67,7 @@ let decode_opt ?alphabet input =
 
 let encode ?(pad = true) ?alphabet input =
   let length = String.length input in
-  let words = (length + 2) / 3 in
-  (* rounded up *)
+  let words = (length + 2) / 3 (* rounded up *) in
   let padding_len = if length mod 3 = 0 then 0 else 3 - (length mod 3) in
   let output = Bytes.make (words * 4) '\000' in
   let get i = if i >= length then 0 else int_of_char input.[i] in
