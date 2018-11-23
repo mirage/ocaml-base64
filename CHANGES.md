@@ -1,3 +1,9 @@
+### v2.3.0 (2018-11-23)
+
+* Add a `decode_opt` function that is a non-raising variant of `decode`.
+* Reformat the code with ocamlformat (@dinosaure)
+* Port build to dune from jbuilder (@dinosaure
+
 ### v2.2.0 (2017-06-20)
 
 * Switch to jbuilder (#13, @rgrinberg)
