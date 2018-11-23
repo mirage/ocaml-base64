@@ -1,0 +1,8 @@
+(executable
+ (name test)
+ (libraries base64 rresult alcotest bos))
+
+(alias
+ (name runtest)
+ (deps test.exe)
+ (action (run %{deps} --color=always)))
