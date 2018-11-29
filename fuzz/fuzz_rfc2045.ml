@@ -18,12 +18,12 @@ module Rfc2045 = struct
         let ret = Rfc2045.encode encoder (`Char c) in
         match ret with
           | `Ok -> ()
-          | _ -> raise (Encode_error "encoding was not Ok"))
+          | _ -> assert false
       input;
     let encode = Rfc2045.encode encoder (`End) in
     match encode with
       | `Ok -> Buffer.contents buf |> check_encode
-      | _ -> raise (Encode_error "encoding was not Ok")
+      | _ -> assert false
 
   let decode ?alphabet:_ input =
     let decoder = Rfc2045.decoder (`String input) in
@@ -31,7 +31,8 @@ module Rfc2045 = struct
       match Rfc2045.decode decoder with
         | `End -> acc
         | `Flush output -> rec_decode (Bytes.(of_string output |> copy |> to_string)::acc)
-        | _ -> raise Decode_error
+        | `Malformed _ -> raise Decode_error
+        | _ -> assert false
     in
      List.fold_left (^) "" (List.rev (rec_decode []))
 
