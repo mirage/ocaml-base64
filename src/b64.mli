@@ -36,7 +36,12 @@ val decode : ?alphabet:string -> string -> string
 (** [decode s] decodes the string [s] that is encoded in Base64 format. Will
     leave trailing NULLs on the string, padding it out to a multiple of 3
     characters. [alphabet] defaults to {!default_alphabet}.
+
     @raise Not_found if [s] is not a valid Base64 string. *)
+
+[@@@deprecated
+  "This function raises an exception and is deprecated, you should use \
+   decode_opt"]
 
 val decode_opt : ?alphabet:string -> string -> string option
 (** Same as [decode], but returns [None] instead of raising. *)
