@@ -17,6 +17,9 @@
 
 (** Decode *)
 
+val default_alphabet : string
+(** A 64-character string specifying the regular Base64 alphabet. *)
+
 (** The type for decoders. *)
 type decoder
 
