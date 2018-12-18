@@ -1,14 +1,14 @@
 open Crowbar
 
 exception Encode_error of string
-exception Decode_error
+exception Decode_error of string
 
 (** Pretty printers *)
 
 let register_printer () =
   Printexc.register_printer (function
     | Encode_error err -> Some (Fmt.strf "(Encoding error: %s)" err)
-    | Decode_error -> Some (Fmt.strf "(Decoding error: decoding was not Ok)")
+    | Decode_error err -> Some (Fmt.strf "(Decoding error: %s)" err)
     | _ -> None)
 
 let pp_chr =
@@ -75,7 +75,8 @@ let decode input =
     | `End -> acc
     | `Flush output ->
         rec_decode (Bytes.(of_string output |> copy |> to_string)::acc)
-    | `Malformed _ -> raise Decode_error
+    | `Malformed _ -> raise (Decode_error "Malformed")
+    | `Wrong_padding -> raise (Decode_error "Wrong padding")
     | _ -> assert false
   in
   List.fold_left ( ^ ) "" (List.rev (rec_decode []))
@@ -96,14 +97,34 @@ let random_string_from_alpha n = dynamic_bind (range n) string_from_alpha
 
 let bytes_fixed_range_from_alpha : string gen = dynamic_bind (range 78) bytes_fixed
 
+let set_canonic str =
+  let l = String.length str in
+  let to_drop = l * 6 mod 8 in
+  if to_drop = 6 (* Case when we need to drop 6 bits which means a whole letter *)
+  then
+    String.sub str 0 (l - 1)
+  else
+    if to_drop <> 0 (* Case when we need to drop 2 or 4 bits: we apply a mask droping the bits *)
+    then
+    begin
+      let buf = Bytes.of_string str in
+      let value = String.index Rfc2045.default_alphabet (Bytes.get buf (l - 1)) in
+      let canonic = String.get Rfc2045.default_alphabet (value land (lnot ((1 lsl to_drop) - 1))) in
+      Bytes.set buf (l - 1) canonic;
+      Bytes.to_string buf
+    end
+    else
+      str
+
 let add_padding str =
-  let str = (str ^ "A==") in
-  String.sub str 0 (String.length str / 4 * 4) 
+  let str = set_canonic str in
+  let str = (str ^ "===") in
+  String.sub str 0 (String.length str / 4 * 4)
 
 (** Tests *)
 
 let e2d inputs =
-  let input = List.fold_left (fun acc s -> acc ^ "\r\n" ^ s) "" inputs in
+  let input = String.concat "\r\n" inputs in
   let encode = encode input in
   let decode = decode encode in
   check_eq ~pp ~cmp:String.compare ~eq:String.equal input decode
