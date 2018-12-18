@@ -127,6 +127,8 @@ let ret k v byte_count decoder =
   if decoder.limit_count > 78 then dangerous decoder true ;
   decoder.pp decoder v
 
+[@@@warning "-32"]
+
 let is_b64 = function
   | 'A' .. 'Z' | 'a' .. 'z' | '0' .. '9' | '+' | '/' -> true
   | _ -> false
@@ -172,33 +174,43 @@ let rec t_crlf decoder =
 
 and t_flush {quantum; size; buffer} =
   match size with
-  | 0 | 1 -> `Flush {quantum= 0; size= 0; buffer= Bytes.empty}
+  | 0 | 1 -> `Flush {quantum; size; buffer= Bytes.empty}
   | 2 ->
       let quantum = quantum lsr 4 in
       `Flush
-        { quantum= 0
-        ; size= 0
+        { quantum
+        ; size
         ; buffer= Bytes.make 1 (unsafe_chr (quantum land 255)) }
   | 3 ->
       let quantum = quantum lsr 2 in
       unsafe_set_chr buffer 0 (unsafe_chr ((quantum lsr 8) land 255)) ;
       unsafe_set_chr buffer 1 (unsafe_chr (quantum land 255)) ;
-      `Flush {quantum= 0; size= 0; buffer= Bytes.sub buffer 0 2}
+      `Flush {quantum; size; buffer= Bytes.sub buffer 0 2}
   | _ -> malformed buffer 0 0 3
 
 and t_decode_base64 chr decoder =
   if decoder.padding = 0 then
     let rec go pos = function
       | `Continue state ->
-          if
-            decoder.i_len - (decoder.i_pos + pos) + 1 > 0
-            && is_b64
-                 (unsafe_byte decoder.i decoder.i_off (decoder.i_pos + pos))
-          then
-            go (succ pos)
-              (r_repr state
-                 (unsafe_byte decoder.i decoder.i_off (decoder.i_pos + pos)))
-          else (
+          if decoder.i_len - (decoder.i_pos + pos) + 1 > 0
+          then (
+            match unsafe_byte decoder.i decoder.i_off (decoder.i_pos + pos) with
+            | ('A' .. 'Z' | 'a' .. 'z' | '0' .. '9' | '+' | '/') as chr -> go (succ pos) (r_repr state chr)
+            | '=' ->
+                decoder.i_pos <- decoder.i_pos + pos ;
+                decoder.s <- state ;
+                ret decode_base64 `Padding pos decoder
+            | ' ' | '\t' ->
+                decoder.i_pos <- decoder.i_pos + pos ;
+                decoder.s <- state ;
+                ret decode_base64 `Wsp pos decoder
+            | '\r' ->
+                decoder.i_pos <- decoder.i_pos + pos ;
+                decoder.s <- state ;
+                t_need decoder 2 ;
+                t_fill t_crlf decoder
+            | chr -> malformed (Bytes.make 1 chr) 0 0 1
+          ) else (
             decoder.i_pos <- decoder.i_pos + pos ;
             decoder.byte_count <- decoder.byte_count + pos ;
             decoder.s <- state ;
@@ -238,7 +250,7 @@ let pp_base64 decoder = function
   | `Wsp | `Padding -> decoder.k decoder
   | `Flush state ->
       decoder.s <- state ;
-      `Flush (Bytes.unsafe_to_string state.buffer)
+      `Flush (Bytes.to_string state.buffer)
   | `Malformed _ as v -> v
 
 let decoder src =
