@@ -32,7 +32,7 @@ let (//) x y =
 
 external unsafe_get_uint8 : string -> int -> int = "%string_unsafe_get" [@@noalloc]
 external unsafe_set_uint8 : bytes -> int -> int -> unit= "%bytes_unsafe_set" [@@noalloc]
-external unsafe_set_uint16 : bytes -> int -> int -> unit = "%caml_bytes_set16u" [@@noalloc]
+external unsafe_set_uint16 : bytes -> int -> int -> unit = "%caml_string_set16u" [@@noalloc]
 external swap16 : int -> int = "%bswap16" [@@noalloc]
 
 let none = (-1)
