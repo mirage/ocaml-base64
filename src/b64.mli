@@ -1,6 +1,8 @@
 (*
  * Copyright (c) 2006-2009 Citrix Systems Inc.
  * Copyright (c) 2010 Thomas Gazagnaire <thomas@gazagnaire.com>
+ * Copyright (c) 2014-2016 Anil Madhavapeddy <anil@recoil.org>
+ * Copyright (c) 2018 Romain Calascibetta <romain.calascibetta@gmail.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -24,23 +26,34 @@
 
     {e Release %%VERSION%% - %%PKG_HOMEPAGE%%} *)
 
-val default_alphabet : string
-(** A 64-character string specifying the regular Base64 alphabet. *)
+type alphabet
 
-val uri_safe_alphabet : string
-(** A 64-character string specifying the URI- and filename-safe Base64
+val default_alphabet : alphabet
+(** A 64-character alphabet specifying the regular Base64 alphabet. *)
+
+val uri_safe_alphabet : alphabet
+(** A 64-character alphabet specifying the URI- and filename-safe Base64
     alphabet. *)
 
-val decode : ?alphabet:string -> string -> string
+val make_alphabet : string -> alphabet
+val length_alphabet : alphabet -> int
+
+val decode : ?alphabet:alphabet -> string -> string
 (** [decode s] decodes the string [s] that is encoded in Base64 format. Will
     leave trailing NULLs on the string, padding it out to a multiple of 3
-    characters. [alphabet] defaults to {!default_alphabet}. @raise Not_found if
-    [s] is not a valid Base64 string. *)
+    characters. [alphabet] defaults to {!default_alphabet}.
 
-val decode_opt : ?alphabet:string -> string -> string option
+    @raise if Invalid_argument [s] is not a valid Base64 string or if we got a
+    wrong-padding. *)
+
+val decode_opt : ?alphabet:alphabet -> string -> string option
 (** Same as [decode], but returns [None] instead of raising. *)
 
-val encode : ?pad:bool -> ?alphabet:string -> string -> string
+val decode_result : ?alphabet:alphabet -> string -> (string, [ `Malformed | `Wrong_padding ]) result
+(** Same as [decode], but returns an explicit error ([`Malformed] if input is
+    malformed or [`Wrong_padding] if input is not padded) if it fails. *)
+
+val encode : ?pad:bool -> ?alphabet:alphabet -> string -> string
 (** [encode s] encodes the string [s] into base64. If [pad] is false, no
     trailing padding is added. [pad] defaults to [true], and [alphabet] to
     {!default_alphabet}. *)

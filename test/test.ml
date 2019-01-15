@@ -41,7 +41,7 @@ let rfc4648_tests = [
 let alphabet_size () =
   List.iter (fun (name,alphabet) ->
     Alcotest.(check int) (sprintf "Alphabet size %s = 64" name)
-     64 (String.length alphabet))
+     64 (B64.length_alphabet alphabet))
      ["default",B64.default_alphabet; "uri_safe",B64.uri_safe_alphabet]
 
 (* Encode using OpenSSL `base64` utility *)
