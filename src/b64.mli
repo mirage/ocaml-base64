@@ -49,7 +49,7 @@ val decode : ?alphabet:alphabet -> string -> string
 val decode_opt : ?alphabet:alphabet -> string -> string option
 (** Same as [decode], but returns [None] instead of raising. *)
 
-val decode_result : ?alphabet:alphabet -> string -> (string, [ `Malformed | `Wrong_padding ]) result
+val decode_result : ?alphabet:alphabet -> string -> (string, [ `Msg of string ]) result
 (** Same as [decode], but returns an explicit error ([`Malformed] if input is
     malformed or [`Wrong_padding] if input is not padded) if it fails. *)
 

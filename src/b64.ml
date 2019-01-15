@@ -30,24 +30,21 @@ let (//) x y =
   if x > 0 then 1 + ((x - 1) / y) else 0
 [@@inline]
 
-external unsafe_get_uint8 : string -> int -> int = "%string_unsafe_get" [@@noalloc]
-external unsafe_set_uint8 : bytes -> int -> int -> unit= "%bytes_unsafe_set" [@@noalloc]
+let unsafe_get_uint8 t off = Char.code (String.unsafe_get t off)
+let unsafe_set_uint8 t off v = Bytes.unsafe_set t off (Char.chr v)
+
 external unsafe_set_uint16 : bytes -> int -> int -> unit = "%caml_string_set16u" [@@noalloc]
 external swap16 : int -> int = "%bswap16" [@@noalloc]
 
 let none = (-1)
 
-exception Exists
-
-let padding_exists alphabet =
-  try String.iter (function '=' -> raise Exists | _ -> ()) alphabet; false
-  with Exists -> true
+let padding_exists alphabet = String.contains alphabet '='
 
 let make_alphabet alphabet =
   if String.length alphabet <> 64 then invalid_arg "Length of alphabet must be 64" ;
   if padding_exists alphabet then invalid_arg "Alphabet can not contain padding character" ;
   let emap = Array.init (String.length alphabet) (unsafe_get_uint8 alphabet)  in
-  let dmap = Array.make 255 none in
+  let dmap = Array.make 256 none in
   String.iteri (fun idx chr -> Array.unsafe_set dmap (Char.code chr) idx) alphabet ;
   { emap; dmap; }
 
@@ -61,10 +58,10 @@ let unsafe_set_be_uint16 =
   then fun t off v -> unsafe_set_uint16 t off v
   else fun t off v -> unsafe_set_uint16 t off (swap16 v)
 
-exception Out_of_bound
+exception Out_of_bounds
 
 let get_uint8 t off =
-  if off < 0 || off >= String.length t then raise Out_of_bound ;
+  if off < 0 || off >= String.length t then raise Out_of_bounds ;
   unsafe_get_uint8 t off
 
 let padding = int_of_char '='
@@ -77,8 +74,12 @@ let encode pad { emap; _ } input =
   let emap i = Array.unsafe_get emap i in
 
   let emit b1 b2 b3 i =
-    unsafe_set_be_uint16 res i ((emap (b1 lsr 2 land 0x3f) lsl 8) lor (emap ((b1 lsl 4) lor (b2 lsr 4) land 0x3f))) ;
-    unsafe_set_be_uint16 res (i + 2) ((emap ((b2 lsl 2) lor (b3 lsr 6) land 0x3f) lsl 8) lor (emap (b3 land 0x3f))) in
+    unsafe_set_be_uint16 res i
+      ((emap (b1 lsr 2 land 0x3f) lsl 8)
+       lor (emap ((b1 lsl 4) lor (b2 lsr 4) land 0x3f))) ;
+    unsafe_set_be_uint16 res (i + 2)
+      ((emap ((b2 lsl 2) lor (b3 lsr 6) land 0x3f) lsl 8)
+       lor (emap (b3 land 0x3f))) in
 
   let rec enc j i =
     if i = n then ()
@@ -92,17 +93,19 @@ let encode pad { emap; _ } input =
        j ;
      enc (j + 4) (i + 3)) in
 
-  let rec fix = function
+  let rec unsafe_fix = function
   | 0 -> ()
-  | i -> unsafe_set_uint8 res (n' - i) padding ; fix (i - 1) in
+  | i -> unsafe_set_uint8 res (n' - i) padding ; unsafe_fix (i - 1) in
 
   enc 0 0 ;
 
   if pad
-  then begin fix ((3 - n mod 3) mod 3) ; Bytes.unsafe_to_string res end
+  then begin unsafe_fix ((3 - n mod 3) mod 3) ; Bytes.unsafe_to_string res end
   else Bytes.sub_string res 0 (n / 3 * 4)
 
 let encode ?(pad = true) ?(alphabet = default_alphabet) input = encode pad alphabet input
+
+let error_msgf fmt = Format.ksprintf (fun err -> Error (`Msg err)) fmt
 
 let decode_result { dmap; _ } input =
   let n = String.length input in
@@ -138,15 +141,15 @@ let decode_result { dmap; _ } input =
 
   match dec 0 0 with
   | Some pad -> Ok (Bytes.sub_string res 0 (n' - pad))
-  | None -> Error `Wrong_padding
-  | exception Out_of_bound ->
+  | None -> error_msgf "Wrong padding"
+  | exception Out_of_bounds ->
       (* appear when [get_uint8] wants to access to an invalid area *)
-      Error `Wrong_padding
+      error_msgf "Wrong padding"
   | exception Not_found ->
       (* appear when [dmap] not found associated character.
          an other branch is when we got '=' (so [dmap] returns [Not_found]) and the last
          character is not an '='. *)
-      Error `Malformed
+      error_msgf "Malformed input"
 
 let decode_result ?(alphabet = default_alphabet) input = decode_result alphabet input
 
