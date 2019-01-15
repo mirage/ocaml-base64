@@ -19,8 +19,6 @@
  *
  *)
 
-let () = Printexc.record_backtrace true
-
 type alphabet =
   { emap : int array
   ; dmap : int array }
