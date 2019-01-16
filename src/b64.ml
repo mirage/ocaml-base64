@@ -112,13 +112,14 @@ let decode_result { dmap; _ } input =
   let n' = (n / 4) * 3 in
   let res = Bytes.create n' in
 
-  let emit a b c d i =
-    (* safe to use [unsafe_set_be_uint16] and [unsafe_set_uint8] in this context.
-       [emit] was call only if [Out_of_bounds] was not raised by [get_uint8].
-       That means [i + 4] characters are available in [input]. By this way, [((i + 4) / 4) * 3] *)
+  let emit a b c d j =
+    (* safe to use [unsafe_set_be_uint16] and [unsafe_set_uint8] in this
+       context. [emit] was call only if [Out_of_bounds] was not raised by
+       [get_uint8]. That means [i + 4] characters are available in [input] and
+       [j + 3] characters are available in [res]. *)
     let x = (a lsl 18) lor (b lsl 12) lor (c lsl 6) lor d in
-    unsafe_set_be_uint16 res i (x lsr 8) ;
-    unsafe_set_uint8 res (i + 2) (x land 0xff) in
+    unsafe_set_be_uint16 res j (x lsr 8) ;
+    unsafe_set_uint8 res (j + 2) (x land 0xff) in
 
   let dmap i =
     let x = Array.unsafe_get dmap i in
