@@ -36,15 +36,16 @@ external unsafe_get_uint32 : string -> int -> int32 = "%caml_string_get32u"
 external swap16 : int -> int = "%bswap16" [@@noalloc]
 
 let none = (-1)
+           let (<.>) f g = fun x -> f (g x)
 
 let padding_exists alphabet = String.contains alphabet '='
 
 let make_alphabet alphabet =
   if String.length alphabet <> 64 then invalid_arg "Length of alphabet must be 64" ;
   if padding_exists alphabet then invalid_arg "Alphabet can not contain padding character" ;
-  let emap = Array.init (String.length alphabet) (unsafe_get_uint8 alphabet)  in
+  let emap = Array.init (String.length alphabet) (Char.code <.> String.get alphabet)  in
   let dmap = Array.make 256 none in
-  String.iteri (fun idx chr -> Array.unsafe_set dmap (Char.code chr) idx) alphabet ;
+  String.iteri (fun idx chr -> Array.set dmap (Char.code chr) idx) alphabet ;
   { emap; dmap; }
 
 let length_alphabet { emap; _ } = Array.length emap
