@@ -109,14 +109,6 @@ let encode ?(pad = true) ?(alphabet = default_alphabet) input = encode pad alpha
 
 let error_msgf fmt = Format.ksprintf (fun err -> Error (`Msg err)) fmt
 
-(* let, at most, 3 padding characters. At the end, we are not sure that returned
-   value is a multiple of 4. This operation was done by [n // 4]. *)
-[@@@warning "-32"]
-let chop input len =
-  let idx = ref (len - 1) in
-  while !idx >= 0 && unsafe_get_uint8 input !idx = padding do decr idx done ;
-  if len - !idx > 2 then len - ((len - !idx) - 2) else len
-
 let decode_result { dmap; _ } input =
   let n = (String.length input // 4) * 4 in
   let n' = (n // 4) * 3 in
