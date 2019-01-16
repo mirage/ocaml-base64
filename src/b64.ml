@@ -136,12 +136,22 @@ let decode_result { dmap; _ } input =
     if x = none then raise Not_found ; x in
 
   let only_padding pad idx =
+
+    (* because we round length of [res], we get only padding characters, we need
+       to delete them, so for each [====], we delete 3 bytes. *)
+
     let pad = ref (pad + 3) in
     let idx = ref idx in
     let len = String.length input in
-    while !idx + 4 < len do if unsafe_get_uint32 input !idx <> 0x3d3d3d3dl then raise Not_found ; idx := !idx + 4 ; pad := !pad + 3; done ;
-    while !idx < len do if unsafe_get_uint8 input !idx <> padding then raise Not_found ; incr idx done ;
-    !pad in
+    while !idx + 4 < len do
+      if unsafe_get_uint32 input !idx <> 0x3d3d3d3dl then raise Not_found ;
+      idx := !idx + 4 ;
+      pad := !pad + 3 ;
+    done ;
+    while !idx < len do
+      if unsafe_get_uint8 input !idx <> padding then raise Not_found ;
+      incr idx ;
+    done ; !pad in
 
   let rec dec j i =
     if i = n then 0
@@ -166,13 +176,19 @@ let decode_result { dmap; _ } input =
       emit a b c d j ;
 
       if i + 4 = n
+      (* end of input in anyway *)
       then match pad with
       | 0 -> 0
       | 4 -> 3
+      (* [get_uint8] lies and if we get [4], that mean we got one or more (at
+         most 4) padding character. In this situation, because we round length
+         of [res] (see [n // 4]), we need to delete 3 bytes. *)
       | pad -> pad
       else match pad with
       | 0 -> dec (j + 3) (i + 4)
       | 4 -> only_padding 3 (i + 4)
+      (* Same situation than above but we should get only more padding
+         characters then. *)
       | pad -> only_padding pad (i + 4) end in
 
   match dec 0 0 with
