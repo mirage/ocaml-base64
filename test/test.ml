@@ -38,6 +38,16 @@ let rfc4648_tests = [
   "foobar", "Zm9vYmFy";
 ]
 
+let hannes_tests = [
+  "dummy", "ZHVtbXk=";
+  "dummy", "ZHVtbXk";
+  "dummy", "ZHVtbXk==";
+  "dummy", "ZHVtbXk===";
+  "dummy", "ZHVtbXk====";
+  "dummy", "ZHVtbXk=====";
+  "dummy", "ZHVtbXk======";
+]
+
 let alphabet_size () =
   List.iter (fun (name,alphabet) ->
     Alcotest.(check int) (sprintf "Alphabet size %s = 64" name)
@@ -63,8 +73,17 @@ let test_rfc4648 () =
     Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn r);
   ) rfc4648_tests
 
+let test_hannes () =
+  List.iter (fun (c,r) ->
+    (* B64 vs test cases above *)
+    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn r);
+  ) hannes_tests
+
+
+
 let test_invariants = [ "Alphabet size", `Quick, alphabet_size ]
-let test_codec = [ "RFC4648 test vectors", `Quick, test_rfc4648 ]
+let test_codec = [ "RFC4648 test vectors", `Quick, test_rfc4648
+                 ; "Hannes test vectors", `Quick, test_hannes ]
 
 let () =
   Alcotest.run "Base64" [

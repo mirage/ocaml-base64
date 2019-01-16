@@ -32,6 +32,7 @@ let unsafe_get_uint8 t off = Char.code (String.unsafe_get t off)
 let unsafe_set_uint8 t off v = Bytes.unsafe_set t off (Char.chr v)
 
 external unsafe_set_uint16 : bytes -> int -> int -> unit = "%caml_string_set16u" [@@noalloc]
+external unsafe_get_uint32 : string -> int -> int32 = "%caml_string_get32u"
 external swap16 : int -> int = "%bswap16" [@@noalloc]
 
 let none = (-1)
@@ -107,53 +108,83 @@ let encode ?(pad = true) ?(alphabet = default_alphabet) input = encode pad alpha
 
 let error_msgf fmt = Format.ksprintf (fun err -> Error (`Msg err)) fmt
 
+(* let, at most, 3 padding characters. At the end, we are not sure that returned
+   value is a multiple of 4. This operation was done by [n // 4]. *)
+[@@@warning "-32"]
+let chop input len =
+  let idx = ref (len - 1) in
+  while !idx >= 0 && unsafe_get_uint8 input !idx = padding do decr idx done ;
+  if len - !idx > 2 then len - ((len - !idx) - 2) else len
+
 let decode_result { dmap; _ } input =
-  let n = String.length input in
-  let n' = (n / 4) * 3 in
+  let n = (String.length input // 4) * 4 in
+  let n' = (n // 4) * 3 in
   let res = Bytes.create n' in
 
+  let get_uint8 t off =
+    try get_uint8 t off with Out_of_bounds -> padding in
+
+  let set_be_uint16 t off v =
+    if off < 0 || off + 1 > Bytes.length t then ()
+    else if off < 0 || off + 2 > Bytes.length t then unsafe_set_uint8 t off (v lsr 8)
+    else unsafe_set_be_uint16 t off v in
+
+  let set_uint8 t off v =
+    if off < 0 || off >= Bytes.length t then ()
+    else unsafe_set_uint8 t off v in
+
   let emit a b c d j =
-    (* safe to use [unsafe_set_be_uint16] and [unsafe_set_uint8] in this
-       context. [emit] was call only if [Out_of_bounds] was not raised by
-       [get_uint8]. That means [i + 4] characters are available in [input] and
-       [j + 3] characters are available in [res]. *)
     let x = (a lsl 18) lor (b lsl 12) lor (c lsl 6) lor d in
-    unsafe_set_be_uint16 res j (x lsr 8) ;
-    unsafe_set_uint8 res (j + 2) (x land 0xff) in
+    set_be_uint16 res j (x lsr 8) ;
+    set_uint8 res (j + 2) (x land 0xff) in
 
   let dmap i =
     let x = Array.unsafe_get dmap i in
-    if x = none then raise Not_found else x in
+    if x = none then raise Not_found ; x in
+
+  let only_padding pad idx =
+    let pad = ref (pad + 3) in
+    let idx = ref idx in
+    let len = String.length input in
+    while !idx + 4 < len do if unsafe_get_uint32 input !idx <> 0x3d3d3d3dl then raise Not_found ; idx := !idx + 4 ; pad := !pad + 3; done ;
+    while !idx < len do if unsafe_get_uint8 input !idx <> padding then raise Not_found ; incr idx done ;
+    !pad in
 
   let rec dec j i =
-    if i >= n then Some 0
+    if i = n then 0
     else begin
-      let a = dmap (get_uint8 input i) in
-      (* [Out_of_bounds] can leak. *)
-      let b = dmap (get_uint8 input (i + 1)) in
-      (* [Out_of_bounds] can leak. *)
       let (d, pad) =
         let x = get_uint8 input (i + 3) in
         try (dmap x, 0) with Not_found when x = padding -> (0, 1) in
-      (* [Out_of_bounds] and [Not_found] iff [x ∉ alphabet and x <> '='] can leak. *)
+      (* [Not_found] iff [x ∉ alphabet and x <> '='] can leak. *)
       let (c, pad) =
         let x = get_uint8 input (i + 2) in
         try (dmap x, pad) with Not_found when x = padding && pad = 1 -> (0, 2) in
-      (* [Out_of_bounds] and [Not_found] iff [x ∉ alphabet and x <> '='] can leak. *)
+      (* [Not_found] iff [x ∉ alphabet and x <> '='] can leak. *)
+      let (b, pad) =
+        let x = get_uint8 input (i + 1) in
+        try (dmap x, pad) with Not_found when x = padding && pad = 2 -> (0, 3) in
+      (* [Not_found] iff [x ∉ alphabet and x <> '='] can leak. *)
+      let (a, pad) =
+        let x = get_uint8 input i in
+        try (dmap x, pad) with Not_found when x = padding && pad = 3 -> (0, 4) in
+      (* [Not_found] iff [x ∉ alphabet and x <> '='] can leak. *)
 
       emit a b c d j ;
 
-      if pad = 0
-      then dec (j + 3) (i + 4)
-      else if i + 4 <> n then None
-      else Some pad end in
+      if i + 4 = n
+      then match pad with
+      | 0 -> 0
+      | 4 -> 3
+      | pad -> pad
+      else match pad with
+      | 0 -> dec (j + 3) (i + 4)
+      | 4 -> only_padding 3 (i + 4)
+      | pad -> only_padding pad (i + 4) end in
 
   match dec 0 0 with
-  | None | Some 0 -> Ok (Bytes.unsafe_to_string res)
-  | Some pad -> Ok (Bytes.sub_string res 0 (n' - pad))
-  | exception Out_of_bounds ->
-      (* appear when length of [input] is not a multiple of 4. *)
-      Ok (Bytes.unsafe_to_string res)
+  | 0 -> Ok (Bytes.unsafe_to_string res)
+  | pad -> Ok (Bytes.sub_string res 0 (n' - pad))
   | exception Not_found ->
       (* appear when one character of [input] ∉ [alphabet] and this character <> '=' *)
       error_msgf "Malformed input"
