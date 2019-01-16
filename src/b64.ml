@@ -97,9 +97,11 @@ let encode pad { emap; _ } input =
 
   enc 0 0 ;
 
+  let padding = ((3 - n mod 3) mod 3) in
+
   if pad
-  then begin unsafe_fix ((3 - n mod 3) mod 3) ; Bytes.unsafe_to_string res end
-  else Bytes.sub_string res 0 (n / 3 * 4)
+  then begin unsafe_fix padding ; Bytes.unsafe_to_string res end
+  else Bytes.sub_string res 0 (n' - padding)
 
 let encode ?(pad = true) ?(alphabet = default_alphabet) input = encode pad alphabet input
 
@@ -111,6 +113,9 @@ let decode_result { dmap; _ } input =
   let res = Bytes.create n' in
 
   let emit a b c d i =
+    (* safe to use [unsafe_set_be_uint16] and [unsafe_set_uint8] in this context.
+       [emit] was call only if [Out_of_bounds] was not raised by [get_uint8].
+       That means [i + 4] characters are available in [input]. By this way, [((i + 4) / 4) * 3] *)
     let x = (a lsl 18) lor (b lsl 12) lor (c lsl 6) lor d in
     unsafe_set_be_uint16 res i (x lsr 8) ;
     unsafe_set_uint8 res (i + 2) (x land 0xff) in
@@ -120,43 +125,46 @@ let decode_result { dmap; _ } input =
     if x = none then raise Not_found else x in
 
   let rec dec j i =
-    if i = n then Some 0
+    if i >= n then Some 0
     else begin
       let a = dmap (get_uint8 input i) in
+      (* [Out_of_bounds] can leak. *)
       let b = dmap (get_uint8 input (i + 1)) in
+      (* [Out_of_bounds] can leak. *)
       let (d, pad) =
         let x = get_uint8 input (i + 3) in
         try (dmap x, 0) with Not_found when x = padding -> (0, 1) in
+      (* [Out_of_bounds] and [Not_found] iff [x ∉ alphabet and x <> '='] can leak. *)
       let (c, pad) =
         let x = get_uint8 input (i + 2) in
         try (dmap x, pad) with Not_found when x = padding && pad = 1 -> (0, 2) in
+      (* [Out_of_bounds] and [Not_found] iff [x ∉ alphabet and x <> '='] can leak. *)
 
       emit a b c d j ;
+
       if pad = 0
       then dec (j + 3) (i + 4)
       else if i + 4 <> n then None
       else Some pad end in
 
   match dec 0 0 with
+  | None | Some 0 -> Ok (Bytes.unsafe_to_string res)
   | Some pad -> Ok (Bytes.sub_string res 0 (n' - pad))
-  | None -> error_msgf "Wrong padding"
   | exception Out_of_bounds ->
-      (* appear when [get_uint8] wants to access to an invalid area *)
-      error_msgf "Wrong padding"
+      (* appear when length of [input] is not a multiple of 4. *)
+      Ok (Bytes.unsafe_to_string res)
   | exception Not_found ->
-      (* appear when [dmap] not found associated character.
-         an other branch is when we got '=' (so [dmap] returns [Not_found]) and the last
-         character is not an '='. *)
+      (* appear when one character of [input] ∉ [alphabet] and this character <> '=' *)
       error_msgf "Malformed input"
 
-let decode_result ?(alphabet = default_alphabet) input = decode_result alphabet input
+let decode ?(alphabet = default_alphabet) input = decode_result alphabet input
 
 let decode_opt ?alphabet input =
-  match decode_result ?alphabet input with
+  match decode ?alphabet input with
   | Ok res -> Some res
   | Error _ -> None
 
-let decode ?alphabet input =
-  match decode_opt ?alphabet input with
-  | Some res -> res
-  | None -> invalid_arg "Invalid Base64 input"
+let decode_exn ?alphabet input =
+  match decode ?alphabet input with
+  | Ok res -> res
+  | Error (`Msg err) -> invalid_arg err

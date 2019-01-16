@@ -60,7 +60,7 @@ let test_rfc4648 () =
     (* B64 vs test cases above *)
     Alcotest.(check string) (sprintf "encode rfc4648 %s" c) r (lib_encode c);
     (* B64 decode vs library *)
-    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode r);
+    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn r);
   ) rfc4648_tests
 
 let test_invariants = [ "Alphabet size", `Quick, alphabet_size ]
