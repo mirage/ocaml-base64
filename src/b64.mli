@@ -43,15 +43,17 @@ val decode_exn : ?alphabet:alphabet -> string -> string
     leave trailing NULLs on the string, padding it out to a multiple of 3
     characters. [alphabet] defaults to {!default_alphabet}.
 
-    @raise if Invalid_argument [s] is not a valid Base64 string or if we got a
-    wrong-padding. *)
+    Decoder can fail when character of [s] is not a part of [alphabet] or is not
+    [padding] character. If input is not padded correctly, decoder does the
+    best-effort but it does not ensure [decode_exn (encode ~pad:false x) = x].
+
+    @raise if Invalid_argument [s] is not a valid Base64 string. *)
 
 val decode_opt : ?alphabet:alphabet -> string -> string option
 (** Same as [decode], but returns [None] instead of raising. *)
 
 val decode : ?alphabet:alphabet -> string -> (string, [ `Msg of string ]) result
-(** Same as [decode], but returns an explicit error ([`Malformed] if input is
-    malformed or [`Wrong_padding] if input is not padded) if it fails. *)
+(** Same as [decode], but returns an explicit error message if it fails. *)
 
 val encode : ?pad:bool -> ?alphabet:alphabet -> string -> string
 (** [encode s] encodes the string [s] into base64. If [pad] is false, no
