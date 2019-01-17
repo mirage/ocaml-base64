@@ -76,7 +76,7 @@ let test_rfc4648 () =
 let test_hannes () =
   List.iter (fun (c,r) ->
     (* B64 vs test cases above *)
-    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn r);
+    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn ~pad:false r);
   ) hannes_tests
 
 

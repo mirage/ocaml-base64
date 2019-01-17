@@ -32,7 +32,7 @@ let unsafe_get_uint8 t off = Char.code (String.unsafe_get t off)
 let unsafe_set_uint8 t off v = Bytes.unsafe_set t off (Char.chr v)
 
 external unsafe_set_uint16 : bytes -> int -> int -> unit = "%caml_string_set16u" [@@noalloc]
-external unsafe_get_uint32 : string -> int -> int32 = "%caml_string_get32u"
+external unsafe_get_uint16 : string -> int -> int = "%caml_string_get16u" [@@noalloc]
 external swap16 : int -> int = "%bswap16" [@@noalloc]
 
 let none = (-1)
@@ -109,13 +109,13 @@ let encode ?(pad = true) ?(alphabet = default_alphabet) input = encode pad alpha
 
 let error_msgf fmt = Format.ksprintf (fun err -> Error (`Msg err)) fmt
 
-let decode_result { dmap; _ } input =
+let decode_result ?(pad = true) { dmap; _ } input =
   let n = (String.length input // 4) * 4 in
   let n' = (n // 4) * 3 in
   let res = Bytes.create n' in
 
   let get_uint8 t off =
-    try get_uint8 t off with Out_of_bounds -> padding in
+    try get_uint8 t off with Out_of_bounds when not pad -> padding in
 
   let set_be_uint16 t off v =
     if off < 0 || off + 1 > Bytes.length t then ()
@@ -144,7 +144,7 @@ let decode_result { dmap; _ } input =
     let idx = ref idx in
     let len = String.length input in
     while !idx + 4 < len do
-      if unsafe_get_uint32 input !idx <> 0x3d3d3d3dl then raise Not_found ;
+      if unsafe_get_uint16 input !idx <> 0x3d3d || unsafe_get_uint16 input (!idx + 2) <> 0x3d3d then raise Not_found ;
       idx := !idx + 4 ;
       pad := !pad + 3 ;
     done ;
@@ -194,18 +194,20 @@ let decode_result { dmap; _ } input =
   match dec 0 0 with
   | 0 -> Ok (Bytes.unsafe_to_string res)
   | pad -> Ok (Bytes.sub_string res 0 (n' - pad))
+  | exception Out_of_bounds -> error_msgf "Malformed input"
+      (* only when [pad = true] and when length of input is not a multiple of 4. *)
   | exception Not_found ->
       (* appear when one character of [input] ∉ [alphabet] and this character <> '=' *)
       error_msgf "Malformed input"
 
-let decode ?(alphabet = default_alphabet) input = decode_result alphabet input
+let decode ?pad ?(alphabet = default_alphabet) input = decode_result ?pad alphabet input
 
-let decode_opt ?alphabet input =
-  match decode ?alphabet input with
+let decode_opt ?pad ?alphabet input =
+  match decode ?pad ?alphabet input with
   | Ok res -> Some res
   | Error _ -> None
 
-let decode_exn ?alphabet input =
-  match decode ?alphabet input with
+let decode_exn ?pad ?alphabet input =
+  match decode ?pad ?alphabet input with
   | Ok res -> res
   | Error (`Msg err) -> invalid_arg err
