@@ -36,7 +36,11 @@ external unsafe_get_uint16 : string -> int -> int = "%caml_string_get16u" [@@noa
 external swap16 : int -> int = "%bswap16" [@@noalloc]
 
 let none = (-1)
-           let (<.>) f g = fun x -> f (g x)
+
+(* We mostly want to have an optional array for [dmap] (e.g. [int option
+   array]). So we consider the [none] value as [-1]. *)
+
+let (<.>) f g = fun x -> f (g x)
 
 let padding_exists alphabet = String.contains alphabet '='
 
@@ -58,6 +62,9 @@ let unsafe_set_be_uint16 =
   then fun t off v -> unsafe_set_uint16 t off v
   else fun t off v -> unsafe_set_uint16 t off (swap16 v)
 
+(* We make this exception to ensure to keep a control about which exception we
+   can raise and avoid appearance of unknown exceptions like an ex-nihilo
+   magic rabbit (or magic money?). *)
 exception Out_of_bounds
 
 let get_uint8 t off =
@@ -118,8 +125,11 @@ let decode_result ?(pad = true) { dmap; _ } input =
     try get_uint8 t off with Out_of_bounds when not pad -> padding in
 
   let set_be_uint16 t off v =
+    (* can not write 2 bytes. *)
     if off < 0 || off + 1 > Bytes.length t then ()
+    (* can not write 1 byte but can write 1 byte *)
     else if off < 0 || off + 2 > Bytes.length t then unsafe_set_uint8 t off (v lsr 8)
+    (* can write 2 bytes. *)
     else unsafe_set_be_uint16 t off v in
 
   let set_uint8 t off v =
@@ -137,19 +147,30 @@ let decode_result ?(pad = true) { dmap; _ } input =
 
   let only_padding pad idx =
 
-    (* because we round length of [res], we get only padding characters, we need
-       to delete them, so for each [====], we delete 3 bytes. *)
+    (* because we round length of [res] to the upper bound of how many
+       characters we should have from [input], we got at this stage only padding
+       characters and we need to delete them, so for each [====], we delete 3
+       bytes. *)
 
     let pad = ref (pad + 3) in
     let idx = ref idx in
     let len = String.length input in
     while !idx + 4 < len do
-      if unsafe_get_uint16 input !idx <> 0x3d3d || unsafe_get_uint16 input (!idx + 2) <> 0x3d3d then raise Not_found ;
+      (* use [unsafe_get_uint16] instead [unsafe_get_uint32] to avoid allocation
+         of [int32]. Of course, [3d3d3d3d] is [====]. *)
+      if unsafe_get_uint16 input !idx <> 0x3d3d
+      || unsafe_get_uint16 input (!idx + 2) <> 0x3d3d
+      then raise Not_found ;
+      (* We got something bad, should be a valid character according to
+         [alphabet] but outside the scope. *)
+
       idx := !idx + 4 ;
       pad := !pad + 3 ;
     done ;
     while !idx < len do
-      if unsafe_get_uint8 input !idx <> padding then raise Not_found ;
+      if unsafe_get_uint8 input !idx <> padding
+      then raise Not_found ;
+
       incr idx ;
     done ; !pad in
 
@@ -194,8 +215,8 @@ let decode_result ?(pad = true) { dmap; _ } input =
   match dec 0 0 with
   | 0 -> Ok (Bytes.unsafe_to_string res)
   | pad -> Ok (Bytes.sub_string res 0 (n' - pad))
-  | exception Out_of_bounds -> error_msgf "Malformed input"
-      (* only when [pad = true] and when length of input is not a multiple of 4. *)
+  | exception Out_of_bounds -> error_msgf "Wrong padding"
+      (* appear only when [pad = true] and when length of input is not a multiple of 4. *)
   | exception Not_found ->
       (* appear when one character of [input] ∉ [alphabet] and this character <> '=' *)
       error_msgf "Malformed input"
