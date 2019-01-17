@@ -48,6 +48,16 @@ let hannes_tests = [
   "dummy", "ZHVtbXk======";
 ]
 
+let php_tests = [
+  "πάντα χωρεῖ καὶ οὐδὲν μένει …", "z4DOrM69z4TOsSDPh8-Jz4HOteG_liDOus6x4b22IM6_4b2QzrThvbLOvSDOvM6tzr3Otc65IOKApg"
+]
+
+let rfc3548_tests = [
+  "\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l+";
+  "\x14\xfb\x9c\x03\xd9", "FPucA9k=";
+  "\x14\xfb\x9c\x03", "FPucAw==";
+]
+
 let alphabet_size () =
   List.iter (fun (name,alphabet) ->
     Alcotest.(check int) (sprintf "Alphabet size %s = 64" name)
@@ -73,17 +83,32 @@ let test_rfc4648 () =
     Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn r);
   ) rfc4648_tests
 
+let test_rfc3548 () =
+  List.iter (fun (c,r) ->
+    (* B64 vs openssl *)
+    Alcotest.(check string) (sprintf "encode %s" c) (openssl_encode c) (lib_encode c);
+    (* B64 vs test cases above *)
+    Alcotest.(check string) (sprintf "encode rfc3548 %s" c) r (lib_encode c);
+    (* B64 decode vs library *)
+    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn r);
+  ) rfc3548_tests
+
 let test_hannes () =
   List.iter (fun (c,r) ->
     (* B64 vs test cases above *)
     Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn ~pad:false r);
   ) hannes_tests
 
-
+let test_php () =
+  List.iter (fun (c,r) ->
+    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn ~pad:false ~alphabet:B64.uri_safe_alphabet r);
+  ) php_tests
 
 let test_invariants = [ "Alphabet size", `Quick, alphabet_size ]
 let test_codec = [ "RFC4648 test vectors", `Quick, test_rfc4648
-                 ; "Hannes test vectors", `Quick, test_hannes ]
+                 ; "RFC3548 test vectors", `Quick, test_rfc3548
+                 ; "Hannes test vectors", `Quick, test_hannes
+                 ; "PHP test vectors", `Quick, test_php ]
 
 let () =
   Alcotest.run "Base64" [
