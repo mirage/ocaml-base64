@@ -40,14 +40,10 @@ let none = (-1)
 (* We mostly want to have an optional array for [dmap] (e.g. [int option
    array]). So we consider the [none] value as [-1]. *)
 
-let (<.>) f g = fun x -> f (g x)
-
-let padding_exists alphabet = String.contains alphabet '='
-
 let make_alphabet alphabet =
   if String.length alphabet <> 64 then invalid_arg "Length of alphabet must be 64" ;
-  if padding_exists alphabet then invalid_arg "Alphabet can not contain padding character" ;
-  let emap = Array.init (String.length alphabet) (Char.code <.> String.get alphabet)  in
+  if String.contains alphabet '=' then invalid_arg "Alphabet can not contain padding character" ;
+  let emap = Array.init (String.length alphabet) (fun i -> Char.code (String.get alphabet i))  in
   let dmap = Array.make 256 none in
   String.iteri (fun idx chr -> Array.set dmap (Char.code chr) idx) alphabet ;
   { emap; dmap; }
@@ -106,11 +102,11 @@ let encode pad { emap; _ } input =
 
   enc 0 0 ;
 
-  let padding = ((3 - n mod 3) mod 3) in
+  let pad_to_write = ((3 - n mod 3) mod 3) in
 
   if pad
-  then begin unsafe_fix padding ; Bytes.unsafe_to_string res end
-  else Bytes.sub_string res 0 (n' - padding)
+  then begin unsafe_fix pad_to_write ; Bytes.unsafe_to_string res end
+  else Bytes.sub_string res 0 (n' - pad_to_write) (* [pad = false], we don't want to write them. *)
 
 let encode ?(pad = true) ?(alphabet = default_alphabet) input = encode pad alphabet input
 
@@ -121,7 +117,7 @@ let decode_result ?(pad = true) { dmap; _ } input =
   let n' = (n // 4) * 3 in
   let res = Bytes.create n' in
 
-  let get_uint8 =
+  let get_uint8_or_padding =
     if pad then fun t off -> get_uint8 t off
     else fun t off -> try get_uint8 t off with Out_of_bounds -> padding in
 
@@ -179,19 +175,19 @@ let decode_result ?(pad = true) { dmap; _ } input =
     if i = n then 0
     else begin
       let (d, pad) =
-        let x = get_uint8 input (i + 3) in
+        let x = get_uint8_or_padding input (i + 3) in
         try (dmap x, 0) with Not_found when x = padding -> (0, 1) in
       (* [Not_found] iff [x ∉ alphabet and x <> '='] can leak. *)
       let (c, pad) =
-        let x = get_uint8 input (i + 2) in
+        let x = get_uint8_or_padding input (i + 2) in
         try (dmap x, pad) with Not_found when x = padding && pad = 1 -> (0, 2) in
       (* [Not_found] iff [x ∉ alphabet and x <> '='] can leak. *)
       let (b, pad) =
-        let x = get_uint8 input (i + 1) in
+        let x = get_uint8_or_padding input (i + 1) in
         try (dmap x, pad) with Not_found when x = padding && pad = 2 -> (0, 3) in
       (* [Not_found] iff [x ∉ alphabet and x <> '='] can leak. *)
       let (a, pad) =
-        let x = get_uint8 input i in
+        let x = get_uint8_or_padding input i in
         try (dmap x, pad) with Not_found when x = padding && pad = 3 -> (0, 4) in
       (* [Not_found] iff [x ∉ alphabet and x <> '='] can leak. *)
 
