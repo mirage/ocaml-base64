@@ -53,7 +53,7 @@ val decode_opt : ?pad:bool -> ?alphabet:alphabet -> string -> string option
 (** Same as [decode], but returns [None] instead of raising. *)
 
 val decode : ?pad:bool -> ?alphabet:alphabet -> string -> (string, [ `Msg of string ]) result
-(** Same as [decode], but returns an explicit error message if it fails. *)
+(** Same as {!decode_exn}, but returns an explicit error message {!result} if it fails. *)
 
 val encode : ?pad:bool -> ?alphabet:alphabet -> string -> string
 (** [encode s] encodes the string [s] into base64. If [pad] is false, no
