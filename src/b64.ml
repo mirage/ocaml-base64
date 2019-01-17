@@ -121,8 +121,9 @@ let decode_result ?(pad = true) { dmap; _ } input =
   let n' = (n // 4) * 3 in
   let res = Bytes.create n' in
 
-  let get_uint8 t off =
-    try get_uint8 t off with Out_of_bounds when not pad -> padding in
+  let get_uint8 =
+    if pad then fun t off -> get_uint8 t off
+    else fun t off -> try get_uint8 t off with Out_of_bounds -> padding in
 
   let set_be_uint16 t off v =
     (* can not write 2 bytes. *)
