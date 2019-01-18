@@ -75,22 +75,23 @@ let canonic alphabet =
   let dmap = Array.make 256 (-1) in
   Array.iteri (fun i x -> Array.set dmap x i) (B64.alphabet alphabet) ;
   fun input ->
-    let len = (String.length input // 4) * 4 in
-    if len = String.length input then input
-    else if len - String.length input = 3 then String.sub input 0 (String.length input - 1)
+    let input_len = String.length input in
+    let normalized_len = (input_len // 4) * 4 in
+    if normalized_len = input_len then input
+    else if normalized_len - input_len = 3 then String.sub input 0 (input_len - 1)
     else begin
-      let rest = len - String.length input in
-      let last = String.get input (String.length input - 1) in
-      let output = Bytes.make len '=' in
-      Bytes.blit_string input 0 output 0 (String.length input) ;
-      let mask = match rest with
+      let remainder_len = normalized_len - input_len in
+      let last = String.get input (input_len - 1) in
+      let output = Bytes.make normalized_len '=' in
+      Bytes.blit_string input 0 output 0 input_len ;
+      let mask = match remainder_len with
         | 1 -> 0x3c
         | 2 -> 0x30
         | _ -> assert false in
       let decoded = Array.get dmap (Char.code last) in
       let canonic = (decoded land mask) in
       let encoded = Array.get (B64.alphabet alphabet) canonic in
-      Bytes.set output (String.length input - 1) (Char.chr encoded) ;
+      Bytes.set output (input_len - 1) (Char.chr encoded) ;
       Bytes.unsafe_to_string output
     end
 
