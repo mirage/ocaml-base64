@@ -150,8 +150,8 @@ let decode_sub ?(pad = true) { dmap; _ } ?(off = 0) ?len input =
   let res = Bytes.create n' in
 
   let get_uint8_or_padding =
-    if pad then fun t i -> get_uint8 t (off + i)
-    else fun t i -> try get_uint8 t (off + i) with Out_of_bounds -> padding in
+    if pad then (fun t i -> if i >= len then raise Out_of_bounds ; get_uint8 t (off + i) )
+    else (fun t i -> try if i < len then get_uint8 t (off + i) else padding with Out_of_bounds -> padding ) in
 
   let set_be_uint16 t off v =
     (* can not write 2 bytes. *)
@@ -183,7 +183,7 @@ let decode_sub ?(pad = true) { dmap; _ } ?(off = 0) ?len input =
 
     let pad = ref (pad + 3) in
     let idx = ref idx in
-    let len = String.length input in
+
     while !idx + 4 < len do
       (* use [unsafe_get_uint16] instead [unsafe_get_uint32] to avoid allocation
          of [int32]. Of course, [3d3d3d3d] is [====]. *)

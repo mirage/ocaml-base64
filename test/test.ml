@@ -58,6 +58,14 @@ let rfc3548_tests = [
   "\x14\xfb\x9c\x03", "FPucAw==";
 ]
 
+let cfcs_tests = [
+  0, 2, "\004", "BB";
+  1, 2, "\004", "ABB";
+  1, 2, "\004", "ABBA";
+  2, 2, "\004", "AABBA";
+  2, 2, "\004", "AABBAA";
+]
+
 let alphabet_size () =
   List.iter (fun (name,alphabet) ->
     Alcotest.(check int) (sprintf "Alphabet size %s = 64" name)
@@ -104,10 +112,18 @@ let test_php () =
     Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn ~pad:false ~alphabet:B64.uri_safe_alphabet r);
   ) php_tests
 
+let test_cfcs () =
+  List.iter (fun (off, len, c,r) ->
+    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn ~pad:false ~off ~len r);
+  ) cfcs_tests
+
+
+
 let test_invariants = [ "Alphabet size", `Quick, alphabet_size ]
 let test_codec = [ "RFC4648 test vectors", `Quick, test_rfc4648
                  ; "RFC3548 test vectors", `Quick, test_rfc3548
                  ; "Hannes test vectors", `Quick, test_hannes
+                 ; "Cfcs test vectors", `Quick, test_cfcs
                  ; "PHP test vectors", `Quick, test_php ]
 
 let () =
