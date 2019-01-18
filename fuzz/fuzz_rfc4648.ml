@@ -95,6 +95,29 @@ let canonic alphabet =
       Bytes.unsafe_to_string output
     end
 
+let isomorphism0 input =
+  (* x0 = decode(input) && x1 = decode(encode(x0)) && x0 = x1 *)
+  match B64.decode ~pad:false input with
+  | Error (`Msg err) ->
+      fail err
+  | Ok result0 ->
+      let result1 = B64.encode_exn result0 in
+      match B64.decode ~pad:true result1 with
+      | Error (`Msg err) ->
+          fail err
+      | Ok result2 ->
+          check_eq ~pp ~cmp:String.compare ~eq:String.equal result0 result2
+
+let isomorphism1 input =
+  let result0 = B64.encode_exn input in
+  match B64.decode ~pad:true result0 with
+  | Error (`Msg err) -> fail err
+  | Ok result1 ->
+      let result2 = B64.encode_exn result1 in
+      check_eq ~pp:Fmt.string ~cmp:String.compare ~eq:String.equal result0 result2
+
 let () =
   add_test ~name:"rfc4648: encode -> decode" [ bytes ] encode_and_decode ;
-  add_test ~name:"rfc4648: encode -> decode" [ random_string_from_alphabet ~max:1000 B64.default_alphabet ] (decode_and_encode <.> canonic B64.default_alphabet)
+  add_test ~name:"rfc4648: decode -> encode" [ random_string_from_alphabet ~max:1000 B64.default_alphabet ] (decode_and_encode <.> canonic B64.default_alphabet) ;
+  add_test ~name:"rfc4648: x = decode(encode(x))" [ random_string_from_alphabet ~max:1000 B64.default_alphabet ] isomorphism0 ;
+  add_test ~name:"rfc4648: x = encode(decode(x))" [ bytes ] isomorphism1
