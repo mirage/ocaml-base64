@@ -64,6 +64,9 @@ let cfcs_tests = [
   1, 2, "\004", "ABBA";
   2, 2, "\004", "AABBA";
   2, 2, "\004", "AABBAA";
+  0, 0, "", "BB";
+  1, 0, "", "BB";
+  2, 0, "", "BB";
 ]
 
 let alphabet_size () =
