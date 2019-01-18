@@ -243,11 +243,6 @@ let decode_result ?(pad = true) { dmap; _ } ?(off = 0) ?len input =
 
 let decode ?pad ?(alphabet = default_alphabet) ?off ?len input = decode_result ?pad alphabet ?off ?len input
 
-let decode_opt ?pad ?alphabet ?off ?len input =
-  match decode ?pad ?alphabet ?off ?len input with
-  | Ok res -> Some res
-  | Error _ -> None
-
 let decode_exn ?pad ?alphabet ?off ?len input =
   match decode ?pad ?alphabet ?off ?len input with
   | Ok res -> res

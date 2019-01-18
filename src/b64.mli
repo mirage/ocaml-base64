@@ -36,8 +36,13 @@ val uri_safe_alphabet : alphabet
     alphabet. *)
 
 val make_alphabet : string -> alphabet
+(** Make a new alphabet. *)
+
 val length_alphabet : alphabet -> int
+(** Returns length of the alphabet, should be 64. *)
+
 val alphabet : alphabet -> int array
+(** Returns the alphabet. *)
 
 val decode_exn : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> string
 (** [decode s] decodes the string [s] that is encoded in Base64 format. Will
@@ -49,9 +54,6 @@ val decode_exn : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> stri
     best-effort but it does not ensure [decode_exn (encode ~pad:false x) = x].
 
     @raise if Invalid_argument [s] is not a valid Base64 string. *)
-
-val decode_opt : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> string option
-(** Same as [decode], but returns [None] instead of raising. *)
 
 val decode : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> (string, [ `Msg of string ]) result
 (** Same as {!decode_exn}, but returns an explicit error message {!result} if it fails. *)
