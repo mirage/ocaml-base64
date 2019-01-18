@@ -71,7 +71,7 @@ let openssl_encode buf =
 
 (* Encode using this library *)
 let lib_encode buf =
-  B64.encode ~pad:true buf
+  B64.encode_exn ~pad:true buf
 
 let test_rfc4648 () =
   List.iter (fun (c,r) ->

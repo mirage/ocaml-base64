@@ -49,6 +49,7 @@ let make_alphabet alphabet =
   { emap; dmap; }
 
 let length_alphabet { emap; _ } = Array.length emap
+let alphabet { emap; _ } = emap
 
 let default_alphabet = make_alphabet "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 let uri_safe_alphabet = make_alphabet "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
@@ -69,11 +70,16 @@ let get_uint8 t off =
 
 let padding = int_of_char '='
 
+let error_msgf fmt = Format.ksprintf (fun err -> Error (`Msg err)) fmt
+
 let encode pad { emap; _ } ?(off = 0) ?len input =
   let len = match len with
   | Some len -> len
   | None -> String.length input - off in
 
+  if len < 0 || off < 0 || off > String.length input - len
+  then error_msgf "Invalid bounds"
+  else
   let n = len in
   let n' = n // 3 * 4 in
   let res = Bytes.create n' in
@@ -111,17 +117,24 @@ let encode pad { emap; _ } ?(off = 0) ?len input =
   let pad_to_write = ((3 - n mod 3) mod 3) in
 
   if pad
-  then begin unsafe_fix pad_to_write ; Bytes.unsafe_to_string res end
-  else Bytes.sub_string res 0 (n' - pad_to_write) (* [pad = false], we don't want to write them. *)
+  then begin unsafe_fix pad_to_write ; Ok (Bytes.unsafe_to_string res) end
+  else Ok (Bytes.sub_string res 0 (n' - pad_to_write)) (* [pad = false], we don't want to write them. *)
 
 let encode ?(pad = true) ?(alphabet = default_alphabet) ?off ?len input = encode pad alphabet ?off ?len input
 
-let error_msgf fmt = Format.ksprintf (fun err -> Error (`Msg err)) fmt
+let encode_exn ?pad ?alphabet ?off ?len input =
+  match encode ?pad ?alphabet ?off ?len input with
+  | Ok v -> v
+  | Error (`Msg err) -> invalid_arg err
 
 let decode_result ?(pad = true) { dmap; _ } ?(off = 0) ?len input =
   let len = match len with
   | Some len -> len
   | None -> String.length input - off in
+
+  if len < 0 || off < 0 || off > String.length input - len
+  then error_msgf "Invalid bounds"
+  else
 
   let n = (len // 4) * 4 in
   let n' = (n // 4) * 3 in

@@ -37,6 +37,7 @@ val uri_safe_alphabet : alphabet
 
 val make_alphabet : string -> alphabet
 val length_alphabet : alphabet -> int
+val alphabet : alphabet -> int array
 
 val decode_exn : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> string
 (** [decode s] decodes the string [s] that is encoded in Base64 format. Will
@@ -55,7 +56,13 @@ val decode_opt : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> stri
 val decode : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> (string, [ `Msg of string ]) result
 (** Same as {!decode_exn}, but returns an explicit error message {!result} if it fails. *)
 
-val encode : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> string
+val encode : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> (string, [ `Msg of string]) result
 (** [encode s] encodes the string [s] into base64. If [pad] is false, no
     trailing padding is added. [pad] defaults to [true], and [alphabet] to
-    {!default_alphabet}. *)
+    {!default_alphabet}.
+
+    [encode] fails when [off] and [len] do not designate a valid range of [s]. *)
+
+val encode_exn : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> string
+(** Same as {!encode} but raises an invalid argument exception if we retrieve an
+    error. *)
