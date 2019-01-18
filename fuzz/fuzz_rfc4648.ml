@@ -58,7 +58,8 @@ let encode_and_decode input =
 
 let decode_and_encode input =
   match B64.decode ~pad:true input with
-  | Error (`Msg err) -> fail err
+  | Error (`Msg err) ->
+      fail err
   | Ok result ->
       match B64.encode ~pad:true result with
       | Error (`Msg err) -> fail err
@@ -76,7 +77,7 @@ let canonic alphabet =
   fun input ->
     let len = (String.length input // 4) * 4 in
     if len = String.length input then input
-    else if len - String.length input = 1 then String.sub input 0 (String.length input - 1)
+    else if len - String.length input = 3 then String.sub input 0 (String.length input - 1)
     else begin
       let rest = len - String.length input in
       let last = String.get input (String.length input - 1) in
