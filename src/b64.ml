@@ -69,8 +69,12 @@ let get_uint8 t off =
 
 let padding = int_of_char '='
 
-let encode pad { emap; _ } input =
-  let n = String.length input in
+let encode pad { emap; _ } ?(off = 0) ?len input =
+  let len = match len with
+  | Some len -> len
+  | None -> String.length input - off in
+
+  let n = len in
   let n' = n // 3 * 4 in
   let res = Bytes.create n' in
 
@@ -86,13 +90,15 @@ let encode pad { emap; _ } input =
 
   let rec enc j i =
     if i = n then ()
-    else if i = n - 1 then emit (unsafe_get_uint8 input i) 0 0 j
-    else if i = n - 2 then emit (unsafe_get_uint8 input i) (unsafe_get_uint8 input (i + 1)) 0 j
+    else if i = n - 1
+    then emit (unsafe_get_uint8 input (off + i)) 0 0 j
+    else if i = n - 2
+    then emit (unsafe_get_uint8 input (off + i)) (unsafe_get_uint8 input (off + i + 1)) 0 j
     else
     (emit
-       (unsafe_get_uint8 input i)
-       (unsafe_get_uint8 input (i + 1))
-       (unsafe_get_uint8 input (i + 2))
+       (unsafe_get_uint8 input (off + i))
+       (unsafe_get_uint8 input (off + i + 1))
+       (unsafe_get_uint8 input (off + i + 2))
        j ;
      enc (j + 4) (i + 3)) in
 
@@ -108,18 +114,22 @@ let encode pad { emap; _ } input =
   then begin unsafe_fix pad_to_write ; Bytes.unsafe_to_string res end
   else Bytes.sub_string res 0 (n' - pad_to_write) (* [pad = false], we don't want to write them. *)
 
-let encode ?(pad = true) ?(alphabet = default_alphabet) input = encode pad alphabet input
+let encode ?(pad = true) ?(alphabet = default_alphabet) ?off ?len input = encode pad alphabet ?off ?len input
 
 let error_msgf fmt = Format.ksprintf (fun err -> Error (`Msg err)) fmt
 
-let decode_result ?(pad = true) { dmap; _ } input =
-  let n = (String.length input // 4) * 4 in
+let decode_result ?(pad = true) { dmap; _ } ?(off = 0) ?len input =
+  let len = match len with
+  | Some len -> len
+  | None -> String.length input - off in
+
+  let n = (len // 4) * 4 in
   let n' = (n // 4) * 3 in
   let res = Bytes.create n' in
 
   let get_uint8_or_padding =
-    if pad then fun t off -> get_uint8 t off
-    else fun t off -> try get_uint8 t off with Out_of_bounds -> padding in
+    if pad then fun t i -> get_uint8 t (off + i)
+    else fun t i -> try get_uint8 t (off + i) with Out_of_bounds -> padding in
 
   let set_be_uint16 t off v =
     (* can not write 2 bytes. *)
@@ -155,8 +165,8 @@ let decode_result ?(pad = true) { dmap; _ } input =
     while !idx + 4 < len do
       (* use [unsafe_get_uint16] instead [unsafe_get_uint32] to avoid allocation
          of [int32]. Of course, [3d3d3d3d] is [====]. *)
-      if unsafe_get_uint16 input !idx <> 0x3d3d
-      || unsafe_get_uint16 input (!idx + 2) <> 0x3d3d
+      if unsafe_get_uint16 input (off + !idx) <> 0x3d3d
+      || unsafe_get_uint16 input (off + !idx + 2) <> 0x3d3d
       then raise Not_found ;
       (* We got something bad, should be a valid character according to
          [alphabet] but outside the scope. *)
@@ -165,7 +175,7 @@ let decode_result ?(pad = true) { dmap; _ } input =
       pad := !pad + 3 ;
     done ;
     while !idx < len do
-      if unsafe_get_uint8 input !idx <> padding
+      if unsafe_get_uint8 input (off + !idx) <> padding
       then raise Not_found ;
 
       incr idx ;
@@ -218,14 +228,14 @@ let decode_result ?(pad = true) { dmap; _ } input =
       (* appear when one character of [input] ∉ [alphabet] and this character <> '=' *)
       error_msgf "Malformed input"
 
-let decode ?pad ?(alphabet = default_alphabet) input = decode_result ?pad alphabet input
+let decode ?pad ?(alphabet = default_alphabet) ?off ?len input = decode_result ?pad alphabet ?off ?len input
 
-let decode_opt ?pad ?alphabet input =
-  match decode ?pad ?alphabet input with
+let decode_opt ?pad ?alphabet ?off ?len input =
+  match decode ?pad ?alphabet ?off ?len input with
   | Ok res -> Some res
   | Error _ -> None
 
-let decode_exn ?pad ?alphabet input =
-  match decode ?pad ?alphabet input with
+let decode_exn ?pad ?alphabet ?off ?len input =
+  match decode ?pad ?alphabet ?off ?len input with
   | Ok res -> res
   | Error (`Msg err) -> invalid_arg err
