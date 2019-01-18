@@ -27,6 +27,7 @@
     {e Release %%VERSION%% - %%PKG_HOMEPAGE%%} *)
 
 type alphabet
+type sub = string * int * int
 
 val default_alphabet : alphabet
 (** A 64-character alphabet specifying the regular Base64 alphabet. *)
@@ -55,6 +56,8 @@ val decode_exn : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> stri
 
     @raise if Invalid_argument [s] is not a valid Base64 string. *)
 
+val decode_sub : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> (sub, [ `Msg of string ]) result
+
 val decode : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> (string, [ `Msg of string ]) result
 (** Same as {!decode_exn}, but returns an explicit error message {!result} if it fails. *)
 
@@ -64,6 +67,8 @@ val encode : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -
     {!default_alphabet}.
 
     [encode] fails when [off] and [len] do not designate a valid range of [s]. *)
+
+val encode_sub : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> (sub, [ `Msg of string]) result
 
 val encode_exn : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> string
 (** Same as {!encode} but raises an invalid argument exception if we retrieve an
