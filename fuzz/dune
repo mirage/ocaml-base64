@@ -2,3 +2,8 @@
  (name fuzz_rfc2045)
  (modules fuzz_rfc2045)
  (libraries astring crowbar fmt rfc2045))
+
+(executable
+ (name fuzz_rfc4648)
+ (modules fuzz_rfc4648)
+ (libraries astring crowbar fmt base64))
