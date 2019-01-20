@@ -141,8 +141,15 @@ let range_of_max max : (int * int) gen =
   dynamic_bind (range (max / 2))
   @@ fun off -> map [ range (max - off) ] (fun len -> (off, len))
 
+let failf fmt = Fmt.kstrf fail fmt
+
+let no_exception pad off len input =
+  try let _ = B64.decode ?pad ?off ?len ~alphabet:B64.default_alphabet input in ()
+  with exn -> failf "decode fails with: %s." (Printexc.to_string exn)
+
 let () =
   add_test ~name:"rfc4648: encode -> decode" [ bytes_and_range ] encode_and_decode ;
   add_test ~name:"rfc4648: decode -> encode" [ random_string_from_alphabet ~max:1000 B64.default_alphabet ] (decode_and_encode <.> canonic B64.default_alphabet) ;
   add_test ~name:"rfc4648: x = decode(encode(x))" [ random_string_from_alphabet ~max:1000 B64.default_alphabet ] isomorphism0 ;
-  add_test ~name:"rfc4648: x = encode(decode(x))" [ bytes_and_range ] isomorphism1
+  add_test ~name:"rfc4648: x = encode(decode(x))" [ bytes_and_range ] isomorphism1 ;
+  add_test ~name:"rfc4648: no exception leak" [ option bool; option int; option int; bytes ] no_exception
