@@ -72,8 +72,8 @@ let cfcs_tests = [
 let alphabet_size () =
   List.iter (fun (name,alphabet) ->
     Alcotest.(check int) (sprintf "Alphabet size %s = 64" name)
-     64 (B64.length_alphabet alphabet))
-     ["default",B64.default_alphabet; "uri_safe",B64.uri_safe_alphabet]
+     64 (Base64.length_alphabet alphabet))
+     ["default",Base64.default_alphabet; "uri_safe",Base64.uri_safe_alphabet]
 
 (* Encode using OpenSSL `base64` utility *)
 let openssl_encode buf =
@@ -82,42 +82,42 @@ let openssl_encode buf =
 
 (* Encode using this library *)
 let lib_encode buf =
-  B64.encode_exn ~pad:true buf
+  Base64.encode_exn ~pad:true buf
 
 let test_rfc4648 () =
   List.iter (fun (c,r) ->
-    (* B64 vs openssl *)
+    (* Base64 vs openssl *)
     Alcotest.(check string) (sprintf "encode %s" c) (openssl_encode c) (lib_encode c);
-    (* B64 vs test cases above *)
+    (* Base64 vs test cases above *)
     Alcotest.(check string) (sprintf "encode rfc4648 %s" c) r (lib_encode c);
-    (* B64 decode vs library *)
-    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn r);
+    (* Base64 decode vs library *)
+    Alcotest.(check string) (sprintf "decode %s" r) c (Base64.decode_exn r);
   ) rfc4648_tests
 
 let test_rfc3548 () =
   List.iter (fun (c,r) ->
-    (* B64 vs openssl *)
+    (* Base64 vs openssl *)
     Alcotest.(check string) (sprintf "encode %s" c) (openssl_encode c) (lib_encode c);
-    (* B64 vs test cases above *)
+    (* Base64 vs test cases above *)
     Alcotest.(check string) (sprintf "encode rfc3548 %s" c) r (lib_encode c);
-    (* B64 decode vs library *)
-    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn r);
+    (* Base64 decode vs library *)
+    Alcotest.(check string) (sprintf "decode %s" r) c (Base64.decode_exn r);
   ) rfc3548_tests
 
 let test_hannes () =
   List.iter (fun (c,r) ->
-    (* B64 vs test cases above *)
-    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn ~pad:false r);
+    (* Base64 vs test cases above *)
+    Alcotest.(check string) (sprintf "decode %s" r) c (Base64.decode_exn ~pad:false r);
   ) hannes_tests
 
 let test_php () =
   List.iter (fun (c,r) ->
-    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn ~pad:false ~alphabet:B64.uri_safe_alphabet r);
+    Alcotest.(check string) (sprintf "decode %s" r) c (Base64.decode_exn ~pad:false ~alphabet:Base64.uri_safe_alphabet r);
   ) php_tests
 
 let test_cfcs () =
   List.iter (fun (off, len, c,r) ->
-    Alcotest.(check string) (sprintf "decode %s" r) c (B64.decode_exn ~pad:false ~off ~len r);
+    Alcotest.(check string) (sprintf "decode %s" r) c (Base64.decode_exn ~pad:false ~off ~len r);
   ) cfcs_tests
 
 
