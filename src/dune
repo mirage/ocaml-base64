@@ -1,13 +1,11 @@
 (library
  (name base64)
- (modules b64)
- (wrapped false)
+ (modules base64)
  (public_name base64)
  (libraries bytes))
 
 (library
- (name rfc2045)
- (modules rfc2045)
- (wrapped false)
+ (name base64_rfc2045)
+ (modules base64_rfc2045)
  (public_name base64.rfc2045)
  (libraries bytes))

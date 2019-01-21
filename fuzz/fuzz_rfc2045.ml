@@ -53,24 +53,24 @@ let check_encode str =
 
 let encode input =
   let buf = Buffer.create 80 in
-  let encoder = Rfc2045.encoder (`Buffer buf) in
+  let encoder = Base64_rfc2045.encoder (`Buffer buf) in
   String.iter
     (fun c ->
-      let ret = Rfc2045.encode encoder (`Char c) in
+      let ret = Base64_rfc2045.encode encoder (`Char c) in
       match ret with `Ok -> () | _ -> assert false )
     (* XXX(dinosaure): [`Partial] can never occur. *)
     input ;
-  let encode = Rfc2045.encode encoder `End in
+  let encode = Base64_rfc2045.encode encoder `End in
   match encode with
   | `Ok -> Buffer.contents buf |> check_encode
   | _ -> (* XXX(dinosaure): [`Partial] can never occur. *) assert false
 
 let decode input =
-  let decoder = Rfc2045.decoder (`String input) in
+  let decoder = Base64_rfc2045.decoder (`String input) in
   let rec go acc =
-    if Rfc2045.decoder_dangerous decoder then
+    if Base64_rfc2045.decoder_dangerous decoder then
       raise (Decode_error "Dangerous input") ;
-    match Rfc2045.decode decoder with
+    match Base64_rfc2045.decode decoder with
     | `End -> List.rev acc
     | `Flush output -> go (output :: acc)
     | `Malformed _ -> raise (Decode_error "Malformed")
@@ -88,7 +88,7 @@ let char_from_alpha alpha : string gen =
 
 let string_from_alpha n =
   let acc = const "" in
-  let alpha = Rfc2045.default_alphabet in
+  let alpha = Base64_rfc2045.default_alphabet in
   let rec add_char_from_alpha alpha acc = function
     | 0 -> acc
     | n ->
@@ -116,10 +116,10 @@ let set_canonic str =
   then (
     let buf = Bytes.of_string str in
     let value =
-      String.index Rfc2045.default_alphabet (Bytes.get buf (l - 1))
+      String.index Base64_rfc2045.default_alphabet (Bytes.get buf (l - 1))
     in
     let canonic =
-      Rfc2045.default_alphabet.[value land lnot ((1 lsl to_drop) - 1)]
+      Base64_rfc2045.default_alphabet.[value land lnot ((1 lsl to_drop) - 1)]
     in
     Bytes.set buf (l - 1) canonic ;
     Bytes.unsafe_to_string buf )

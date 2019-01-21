@@ -88,8 +88,8 @@ open Core_bench
 let b64_encode_and_decode len =
   let input = random len in
   Staged.stage @@ fun () ->
-  let encoded = B64.encode_exn input in
-  let _decoded = B64.decode_exn encoded in
+  let encoded = Base64.encode_exn input in
+  let _decoded = Base64.decode_exn encoded in
   ()
 
 let old_encode_and_decode len =
@@ -102,7 +102,7 @@ let old_encode_and_decode len =
 let args = [ 0; 10; 50; 100; 500; 1000; 2500; 5000 ]
 
 let test_b64 =
-  Test.create_indexed ~name:"B64"
+  Test.create_indexed ~name:"Base64"
     ~args b64_encode_and_decode
 
 let test_old =

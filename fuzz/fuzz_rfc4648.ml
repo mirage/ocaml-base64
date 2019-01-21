@@ -33,7 +33,7 @@ let pp = pp_scalar ~get:String.get ~length:String.length
 let (<.>) f g x = f (g x)
 
 let char_from_alphabet alphabet : string gen =
-  map [ range 64 ] (String.make 1 <.> Char.chr <.> Array.unsafe_get (B64.alphabet alphabet))
+  map [ range 64 ] (String.make 1 <.> Char.chr <.> Array.unsafe_get (Base64.alphabet alphabet))
 
 let random_string_from_alphabet alphabet len : string gen =
   let rec add_char_from_alphabet acc = function
@@ -54,20 +54,20 @@ let random_string_from_alphabet ~max alphabet =
     @@ fun off -> map [ range (real_len - off) ] (fun len -> (input, off, len))
 
 let encode_and_decode (input, off, len) =
-  match B64.encode ~pad:true ~off ~len input with
+  match Base64.encode ~pad:true ~off ~len input with
   | Error (`Msg err) -> fail err
   | Ok result ->
-      match B64.decode ~pad:true result with
+      match Base64.decode ~pad:true result with
       | Error (`Msg err) -> fail err
       | Ok result ->
           check_eq ~pp ~cmp:String.compare ~eq:String.equal result (String.sub input off len)
 
 let decode_and_encode (input, off, len) =
-  match B64.decode ~pad:true ~off ~len input with
+  match Base64.decode ~pad:true ~off ~len input with
   | Error (`Msg err) ->
       fail err
   | Ok result ->
-      match B64.encode ~pad:true result with
+      match Base64.encode ~pad:true result with
       | Error (`Msg err) -> fail err
       | Ok result ->
           check_eq ~pp:Fmt.string ~cmp:String.compare ~eq:String.equal result (String.sub input off len)
@@ -79,7 +79,7 @@ let (//) x y =
 
 let canonic alphabet =
   let dmap = Array.make 256 (-1) in
-  Array.iteri (fun i x -> Array.set dmap x i) (B64.alphabet alphabet) ;
+  Array.iteri (fun i x -> Array.set dmap x i) (Base64.alphabet alphabet) ;
   fun (input, off, len) ->
     let real_len = String.length input in
     let input_len = len in
@@ -101,30 +101,30 @@ let canonic alphabet =
         | _ -> assert false in
       let decoded = Array.get dmap (Char.code last) in
       let canonic = (decoded land mask) in
-      let encoded = Array.get (B64.alphabet alphabet) canonic in
+      let encoded = Array.get (Base64.alphabet alphabet) canonic in
       Bytes.set output (off + input_len - 1) (Char.chr encoded) ;
       (Bytes.unsafe_to_string output, off, normalized_len)
     end
 
 let isomorphism0 (input, off, len) =
   (* x0 = decode(input) && x1 = decode(encode(x0)) && x0 = x1 *)
-  match B64.decode ~pad:false ~off ~len input with
+  match Base64.decode ~pad:false ~off ~len input with
   | Error (`Msg err) ->
       fail err
   | Ok result0 ->
-      let result1 = B64.encode_exn result0 in
-      match B64.decode ~pad:true result1 with
+      let result1 = Base64.encode_exn result0 in
+      match Base64.decode ~pad:true result1 with
       | Error (`Msg err) ->
           fail err
       | Ok result2 ->
           check_eq ~pp ~cmp:String.compare ~eq:String.equal result0 result2
 
 let isomorphism1 (input, off, len) =
-  let result0 = B64.encode_exn ~off ~len input in
-  match B64.decode ~pad:true result0 with
+  let result0 = Base64.encode_exn ~off ~len input in
+  match Base64.decode ~pad:true result0 with
   | Error (`Msg err) -> fail err
   | Ok result1 ->
-      let result2 = B64.encode_exn result1 in
+      let result2 = Base64.encode_exn result1 in
       check_eq ~pp:Fmt.string ~cmp:String.compare ~eq:String.equal result0 result2
 
 let bytes_and_range : (string * int * int) gen =
@@ -144,12 +144,12 @@ let range_of_max max : (int * int) gen =
 let failf fmt = Fmt.kstrf fail fmt
 
 let no_exception pad off len input =
-  try let _ = B64.decode ?pad ?off ?len ~alphabet:B64.default_alphabet input in ()
+  try let _ = Base64.decode ?pad ?off ?len ~alphabet:Base64.default_alphabet input in ()
   with exn -> failf "decode fails with: %s." (Printexc.to_string exn)
 
 let () =
   add_test ~name:"rfc4648: encode -> decode" [ bytes_and_range ] encode_and_decode ;
-  add_test ~name:"rfc4648: decode -> encode" [ random_string_from_alphabet ~max:1000 B64.default_alphabet ] (decode_and_encode <.> canonic B64.default_alphabet) ;
-  add_test ~name:"rfc4648: x = decode(encode(x))" [ random_string_from_alphabet ~max:1000 B64.default_alphabet ] isomorphism0 ;
+  add_test ~name:"rfc4648: decode -> encode" [ random_string_from_alphabet ~max:1000 Base64.default_alphabet ] (decode_and_encode <.> canonic Base64.default_alphabet) ;
+  add_test ~name:"rfc4648: x = decode(encode(x))" [ random_string_from_alphabet ~max:1000 Base64.default_alphabet ] isomorphism0 ;
   add_test ~name:"rfc4648: x = encode(decode(x))" [ bytes_and_range ] isomorphism1 ;
   add_test ~name:"rfc4648: no exception leak" [ option bool; option int; option int; bytes ] no_exception
