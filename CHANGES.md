@@ -1,3 +1,22 @@
+### v3.0.0 (2018-01-21)
+
+* Implemenation of Base64 according to RFC 2045 (available on base64.rfc2045)
+* New implementation of Base64 according to RFC 4648 from nocrypto's implementation
+* Fix bad access with `String.iter` on the old implementation of Base64 (@dinosaure, #23)
+* Check isomorphism between `encode` & `decode` function (@hannesm, @dinosaure, #20)
+* Add tests from RFC 3548 and from PHP impl. (@hannesm, @dinosaure, #24)
+* Add fuzzer on both implementations
+ - check isomorphism
+ - check bijection
+ - check if `decode` does not raise any exception
+* __break-api__, `B64` was renamed to `Base64` (@copy, @avsm, @dinosaure, #17)
+* __break-api__, `Base64.decode` and `Base64.encode` returns a result type instead to raise an exception (@hannesm, @dinosaure, #21)
+* __break-api__, Add `sub` type to avoid allocation to the end-user (@avsm, @dinosaure, #24)
+* __break-api__, Add `pad` argument on `decode` function to check if input is well-padded or not (@hannesm, @dinosaure, #24)
+* __break-api__, Add `off` and `len` optional arguments on `encode` & `decode` functions to compute a part of input (@cfcs, @dinosaure, #24)
+* Better performance (see #24) (@dinosaure)
+* Review of code by @cfcs (see #24)
+
 ### v2.3.0 (2018-11-23)
 
 * Add a `decode_opt` function that is a non-raising variant of `decode`.
