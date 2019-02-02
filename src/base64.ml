@@ -128,6 +128,11 @@ let encode ?(pad = true) ?(alphabet = default_alphabet) ?off ?len input =
   | Ok (res, off, len) -> Ok (String.sub res off len)
   | Error _ as err -> err
 
+let encode_string ?pad ?alphabet input =
+  match encode ?pad ?alphabet input with
+  | Ok res -> res
+  | Error _ -> assert false
+
 let encode_sub ?(pad = true) ?(alphabet = default_alphabet) ?off ?len input =
   encode_sub pad alphabet ?off ?len input
 

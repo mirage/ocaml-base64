@@ -1,6 +1,11 @@
+### v3.1.0
+
+* Add `Base64.encode_string` that doesn't raise or return an error.
+  This makes it easier to port pre-3.0 code to the new interface (@avsm)
+
 ### v3.0.0 (2018-01-21)
 
-* Implemenation of Base64 according to RFC 2045 (available on base64.rfc2045)
+* Implementation of Base64 according to RFC 2045 (available on base64.rfc2045)
 * New implementation of Base64 according to RFC 4648 from nocrypto's implementation
 * Fix bad access with `String.iter` on the old implementation of Base64 (@dinosaure, #23)
 * Check isomorphism between `encode` & `decode` function (@hannesm, @dinosaure, #20)
