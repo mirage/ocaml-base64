@@ -78,6 +78,11 @@ val encode : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -
 
     [encode] fails when [off] and [len] do not designate a valid range of [s]. *)
 
+val encode_string : ?pad:bool -> ?alphabet:alphabet -> string -> string
+(** [encode_string s] encodes the string [s] into base64. If [pad] is false, no
+    trailing padding is added. [pad] defaults to [true], and [alphabet] to
+    {!default_alphabet}. *)
+
 val encode_sub : ?pad:bool -> ?alphabet:alphabet -> ?off:int -> ?len:int -> string -> (sub, [ `Msg of string]) result
 (** Same as {!encode} but return a {!sub}-string instead a plain result. By this
     way, we ensure to allocate only one time result. *)
