@@ -1,7 +1,7 @@
-### v3.1.0
+### v3.1.0 (2019-02-03)
 
 * Add `Base64.encode_string` that doesn't raise or return an error.
-  This makes it easier to port pre-3.0 code to the new interface (@avsm)
+  This makes it easier to port pre-3.0 code to the new interface (#26 @avsm)
 
 ### v3.0.0 (2018-01-21)
 
