@@ -18,7 +18,7 @@ Simple encoding and decoding.
 utop # #require "base64";;
 utop # let enc = Base64.encode_exn "OCaml rocks!";;
 val enc : string = "T0NhbWwgcm9ja3Mh"
-utop # let plain = B64.decode_exn enc;;
+utop # let plain = Base64.decode_exn enc;;
 val plain : string = "OCaml rocks!"
 ```
 
