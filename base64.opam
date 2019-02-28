@@ -27,3 +27,7 @@ build: [
   ["dune" "build" "-p" name "-j" jobs]
   ["dune" "runtest" "-p" name] {with-test}
 ]
+conflicts: [
+  "extlib"
+  "extlib-compat"
+]
