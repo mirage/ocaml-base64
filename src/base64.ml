@@ -43,7 +43,7 @@ let none = (-1)
    array]). So we consider the [none] value as [-1]. *)
 
 let make_alphabet alphabet =
-  if String.length alphabet <> 64 then invalid_arg "Length of alphabet must be 64" ;
+  if String.length alphabet > 127 then invalid_arg "Length of alphabet must be lower than 128" ;
   if String.contains alphabet '=' then invalid_arg "Alphabet can not contain padding character" ;
   let emap = Array.init (String.length alphabet) (fun i -> Char.code (String.get alphabet i))  in
   let dmap = Array.make 256 none in
