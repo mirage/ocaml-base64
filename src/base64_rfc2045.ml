@@ -56,13 +56,6 @@ let r_repr ({quantum; size; _} as state) chr =
       flush state
   | _ -> malformed (Bytes.make 1 chr) 0 0 1
 
-let r_crlf source off len =
-  (* assert (0 <= off && 0 <= len && off + len <= String.length source); *)
-  (* assert (len = 2); *)
-  match Bytes.sub_string source off len with
-  | "\r\n" -> `Line_break
-  | _ -> malformed source off 0 len
-
 type src = [`Channel of in_channel | `String of string | `Manual]
 
 type decode =
@@ -129,31 +122,6 @@ let ret k v byte_count decoder =
 
 [@@@warning "-32"]
 
-let is_b64 = function
-  | 'A' .. 'Z' | 'a' .. 'z' | '0' .. '9' | '+' | '/' -> true
-  | _ -> false
-
-let t_need decoder need =
-  decoder.h_len <- 0 ;
-  decoder.h_need <- need
-
-let rec t_fill k decoder =
-  let blit decoder len =
-    unsafe_blit decoder.i
-      (decoder.i_off + decoder.i_pos)
-      decoder.h decoder.h_len len ;
-    decoder.i_pos <- decoder.i_pos + len ;
-    decoder.h_len <- decoder.h_len + len
-  in
-  let rem = i_rem decoder in
-  if rem < 0 (* end of input *) then k decoder
-  else
-    let need = decoder.h_need - decoder.h_len in
-    if rem < need then (
-      blit decoder rem ;
-      refill (t_fill k) decoder )
-    else ( blit decoder need ; k decoder )
-
 type flush_and_malformed = [`Flush of state | `Malformed of string]
 
 let padding {size; _} padding =
@@ -164,15 +132,7 @@ let padding {size; _} padding =
   | 3, 1 -> true
   | _ -> false
 
-let rec t_crlf decoder =
-  if decoder.h_len < decoder.h_need then
-    ret decode_base64
-      (malformed decoder.h 0 0 decoder.h_len)
-      decoder.h_len decoder
-  else
-    ret decode_base64 (r_crlf decoder.h 0 decoder.h_len) decoder.h_len decoder
-
-and t_flush {quantum; size; buffer} =
+let rec t_flush {quantum; size; buffer} =
   match size with
   | 0 | 1 -> `Flush {quantum; size; buffer= Bytes.empty}
   | 2 ->
@@ -200,15 +160,14 @@ and t_decode_base64 chr decoder =
                 decoder.i_pos <- decoder.i_pos + pos ;
                 decoder.s <- state ;
                 ret decode_base64 `Padding pos decoder
-            | ' ' | '\t' ->
+            | ' ' | '\t' | '\011' (* vertical tab *) | '\012' (* form feed *) ->
                 decoder.i_pos <- decoder.i_pos + pos ;
                 decoder.s <- state ;
                 ret decode_base64 `Wsp pos decoder
-            | '\r' ->
+            | '\r' | '\n' ->
                 decoder.i_pos <- decoder.i_pos + pos ;
                 decoder.s <- state ;
-                t_need decoder 2 ;
-                t_fill t_crlf decoder
+                ret decode_base64 `Line_break pos decoder
             | chr -> malformed (Bytes.make 1 chr) 0 0 1
           ) else (
             decoder.i_pos <- decoder.i_pos + pos ;
@@ -239,10 +198,12 @@ and decode_base64 decoder =
         decoder.padding <- decoder.padding + 1 ;
         decoder.i_pos <- decoder.i_pos + 1 ;
         ret decode_base64 `Padding 1 decoder
-    | ' ' | '\t' ->
+    | ' ' | '\t' | '\011' (* vertical tab *) | '\012' (* form feed *) ->
         decoder.i_pos <- decoder.i_pos + 1 ;
         ret decode_base64 `Wsp 1 decoder
-    | '\r' -> t_need decoder 2 ; t_fill t_crlf decoder
+    | '\r' | '\n' -> 
+        decoder.i_pos <- decoder.i_pos + 1 ;
+        ret decode_base64 `Line_break 1 decoder
     | chr -> malformed (Bytes.make 1 chr) 0 0 1
 
 let pp_base64 decoder = function
