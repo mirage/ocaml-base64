@@ -120,8 +120,6 @@ let ret k v byte_count decoder =
   if decoder.limit_count > 78 then dangerous decoder true ;
   decoder.pp decoder v
 
-[@@@warning "-32"]
-
 type flush_and_malformed = [`Flush of state | `Malformed of string]
 
 let padding {size; _} padding =
