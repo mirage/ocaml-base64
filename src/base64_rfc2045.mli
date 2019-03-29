@@ -72,25 +72,25 @@ type dst = [`Channel of out_channel | `Buffer of Buffer.t | `Manual]
 
 type encode = [`Await | `End | `Char of char]
 
-(** The type for Quoted-Printable encoder. *)
+(** The type for Base64 (RFC2045) encoder. *)
 type encoder
 
 val encoder : dst -> encoder
-(** [encoder dst] is an encoder for quoted-printable that outputs to [dst]. *)
+(** [encoder dst] is an encoder for Base64 (RFC2045) that outputs to [dst]. *)
 
 val encode : encoder -> encode -> [`Ok | `Partial]
 (** [encode e v]: is {ul {- [`Partial] iff [e] has a [`Manual] destination and
     needs more output storage. The client must use {!dst} to provide a new
     buffer and then call {!encode} with [`Await] until [`Ok] is returned.} {-
-    [`Ok] when the encoder is ready to encode a new [`Char], [`Line_break] or
+    [`Ok] when the encoder is ready to encode a new [`Char] or
     [`End]}}
 
     For [`Manual] destination, encoding [`End] always return [`Partial], the
     client should continue as usual with [`Await] until [`Ok] is returned at
-    which point {!dst_rem} [encoder] is guaranteed to be the sode of the last
+    which point {!dst_rem} [encoder] is guaranteed to be the size of the last
     provided buffer (i.e. nothing was written).
 
-    {b Raises.} [Invalid_argument] if a [`Char], [`Line_break] or [`End] is
+    {b Raises.} [Invalid_argument] if a [`Char] or [`End] is
     encoded after a [`Partial] encode. *)
 
 val encoder_dst : encoder -> dst
