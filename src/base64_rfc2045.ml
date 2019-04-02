@@ -141,7 +141,7 @@ let t_flush {quantum; size; buffer} =
       unsafe_set_chr buffer 0 (unsafe_chr ((quantum lsr 8) land 255)) ;
       unsafe_set_chr buffer 1 (unsafe_chr (quantum land 255)) ;
       `Flush {quantum; size; buffer= Bytes.sub buffer 0 2}
-  | _ -> assert false
+  | _ -> assert false (* this branch is impossible, size can only ever be in the range [0..3]. *)
 
 let rec t_decode_base64 chr decoder =
   if decoder.padding = 0 then
