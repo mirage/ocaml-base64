@@ -1,6 +1,6 @@
 (executable
  (name test)
- (libraries base64 rresult alcotest bos))
+ (libraries base64 base64.rfc2045 rresult alcotest bos))
 
 (alias
  (name runtest)

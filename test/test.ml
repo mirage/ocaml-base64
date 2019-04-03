@@ -120,7 +120,97 @@ let test_cfcs () =
     Alcotest.(check string) (sprintf "decode %s" r) c (Base64.decode_exn ~pad:false ~off ~len r);
   ) cfcs_tests
 
+exception Malformed
+exception Wrong_padding
 
+let strict_base64_rfc2045_of_string x =
+  let decoder = Base64_rfc2045.decoder (`String x) in
+  let res = Buffer.create 16 in
+
+  let rec go () = match Base64_rfc2045.decode decoder with
+  | `End -> ()
+  | `Wrong_padding -> raise Wrong_padding
+  | `Malformed _ -> raise Malformed
+  | `Flush x -> Buffer.add_string res x ; go ()
+  | `Await -> Alcotest.failf "Retrieve impossible case: `Await" in
+
+  Base64_rfc2045.src decoder (Bytes.unsafe_of_string x) 0 (String.length x) ;
+  go () ; Buffer.contents res
+
+let relaxed_base64_rfc2045_of_string x =
+  let decoder = Base64_rfc2045.decoder (`String x) in
+  let res = Buffer.create 16 in
+
+  let rec go () = match Base64_rfc2045.decode decoder with
+  | `End -> ()
+  | `Wrong_padding -> go ()
+  | `Malformed _ -> go ()
+  | `Flush x -> Buffer.add_string res x ; go ()
+  | `Await -> Alcotest.failf "Retrieve impossible case: `Await" in
+
+  Base64_rfc2045.src decoder (Bytes.unsafe_of_string x) 0 (String.length x) ;
+  go () ; Buffer.contents res
+
+let test_strict_rfc2045 =
+  [ "c2FsdXQgbGVzIGNvcGFpbnMgZmF1dCBhYnNvbHVtZW50IHF1ZSBqZSBkw6lwYXNzZSBsZXMgODAg\r\n\
+     Y2hhcmFjdGVycyBwb3VyIHZvaXIgc2kgbW9uIGVuY29kZXIgZml0cyBiaWVuIGRhbnMgbGVzIGxp\r\n\
+     bWl0ZXMgZGUgbGEgUkZDIDIwNDUgLi4u",
+    "salut les copains faut absolument que je dépasse les 80 characters pour voir si \
+     mon encoder fits bien dans les limites de la RFC 2045 ..."
+  ; "", ""
+  ; "Zg==", "f"
+  ; "Zm8=", "fo"
+  ; "Zm9v", "foo"
+  ; "Zm9vYg==", "foob"
+  ; "Zm9vYmE=", "fooba"
+  ; "Zm9vYmFy", "foobar" ]
+
+let test_relaxed_rfc2045 =
+  [ "Zg", "f"
+  ; "Zm\n8", "fo"
+  ; "Zm\r9v", "foo"
+  ; "Zm9 vYg", "foob"
+  ; "Zm9\r\n vYmE", "fooba"
+  ; "Zm9évYmFy", "foobar" ]
+
+let strict_base64_rfc2045_to_string x =
+  let res = Buffer.create 16 in
+  let encoder = Base64_rfc2045.encoder (`Buffer res) in
+  String.iter
+    (fun chr -> match Base64_rfc2045.encode encoder (`Char chr) with
+      | `Ok -> ()
+      | `Partial -> Alcotest.failf "Retrieve impossible case for (`Char %02x): `Partial" (Char.code chr))
+    x ;
+  match Base64_rfc2045.encode encoder `End with
+  | `Ok -> Buffer.contents res
+  | `Partial -> Alcotest.fail "Retrieve impossible case for `End: `Partial"
+
+let test_strict_with_malformed_input_rfc2045 =
+  List.mapi (fun i (has, _) ->
+      Alcotest.test_case (Fmt.strf "strict rfc2045 - %02d" i) `Quick @@ fun () ->
+      try
+        let _ = strict_base64_rfc2045_of_string has in
+        Alcotest.failf "Strict parser valids malformed input: %S" has
+      with Malformed | Wrong_padding -> () )
+    test_relaxed_rfc2045
+
+let test_strict_rfc2045 =
+  List.mapi (fun i (has, expect) ->
+      Alcotest.test_case (Fmt.strf "strict rfc2045 - %02d" i) `Quick @@ fun () ->
+      try
+        let res0 = strict_base64_rfc2045_of_string has in
+        let res1 = strict_base64_rfc2045_to_string res0 in
+        Alcotest.(check string) "encode(decode(x)) = x" res1 has ;
+        Alcotest.(check string) "decode(x)" res0 expect
+      with Malformed | Wrong_padding -> Alcotest.failf "Invalid input %S" has)
+    test_strict_rfc2045
+
+let test_relaxed_rfc2045 =
+  List.mapi (fun i (has, expect) ->
+      Alcotest.test_case (Fmt.strf "relaxed rfc2045 - %02d" i) `Quick @@ fun () ->
+      let res0 = relaxed_base64_rfc2045_of_string has in
+      Alcotest.(check string) "decode(x)" res0 expect)
+    test_relaxed_rfc2045
 
 let test_invariants = [ "Alphabet size", `Quick, alphabet_size ]
 let test_codec = [ "RFC4648 test vectors", `Quick, test_rfc4648
@@ -133,5 +223,8 @@ let () =
   Alcotest.run "Base64" [
     "invariants", test_invariants;
     "codec", test_codec;
+    "rfc2045", test_strict_rfc2045;
+    "rfc2045", test_strict_with_malformed_input_rfc2045;
+    "rfc2045", test_relaxed_rfc2045;
   ]
 
