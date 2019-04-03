@@ -143,6 +143,10 @@ let t_flush {quantum; size; buffer} =
       `Flush {quantum; size; buffer= Bytes.sub buffer 0 2}
   | _ -> assert false (* this branch is impossible, size can only ever be in the range [0..3]. *)
 
+let wrong_padding decoder =
+  let k _ = `End in
+  decoder.k <- k ; `Wrong_padding
+
 let rec t_decode_base64 chr decoder =
   if decoder.padding = 0 then
     let rec go pos = function
@@ -202,7 +206,7 @@ and decode_base64 decoder =
     if rem < 0 then
       ret
         (fun decoder ->
-          if padding decoder.s decoder.padding then `End else `Wrong_padding )
+          if padding decoder.s decoder.padding then `End else wrong_padding decoder )
         (t_flush decoder.s) 0 decoder
     else refill decode_base64 decoder
   else
