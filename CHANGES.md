@@ -1,3 +1,12 @@
+### v3.2.0 (2019-04-04)
+
+* `Base64_rfc2045.decode` can now progress on many input errors, allowing
+  clients to make forward progress by discarding a single character and
+  trying to continue.  This allows, for example, newlines and other invalid
+  characters to be discarded. (#34 @tiash, review by @dinosaure @avsm)
+* Add more test cases for RFC2045 (#34 @dinosaure)
+* Improve README toplevel output example (#28 @djs55)
+
 ### v3.1.0 (2019-02-03)
 
 * Add `Base64.encode_string` that doesn't raise or return an error.
