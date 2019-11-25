@@ -33,7 +33,7 @@ let (//) x y =
 let unsafe_get_uint8 t off = Char.code (String.unsafe_get t off)
 let unsafe_set_uint8 t off v = Bytes.unsafe_set t off (Char.chr v)
 
-external unsafe_set_uint16 : bytes -> int -> int -> unit = "%caml_string_set16u" [@@noalloc]
+external unsafe_set_uint16 : bytes -> int -> int -> unit = "%caml_bytes_set16u" [@@noalloc]
 external unsafe_get_uint16 : string -> int -> int = "%caml_string_get16u" [@@noalloc]
 external swap16 : int -> int = "%bswap16" [@@noalloc]
 
