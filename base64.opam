@@ -17,8 +17,8 @@ representation.  It is specified in RFC 4648.
 depends: [
   "ocaml" {>="4.03.0"}
   "base-bytes"
-  "ocaml-migrate-parsetree"
-  "dune" {>= "1.0.1"}
+  "dune-configurator"
+  "dune" {>= "2.0"}
   "bos" {with-test}
   "rresult" {with-test}
   "alcotest" {with-test}
