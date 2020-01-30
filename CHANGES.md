@@ -1,3 +1,9 @@
+### v3.3.0 (2019-01-30)
+
+- Remove `build` directive on dune dependency (@CraigFe, #35)
+- Make error poly-variant open (@copy, #39)
+- Use `unsafe_bytes_set16u` instead `unsafe_string_set16u` (@dinosaure, @hhugo, @avsm, #37)
+
 ### v3.2.0 (2019-04-04)
 
 * `Base64_rfc2045.decode` can now progress on many input errors, allowing
