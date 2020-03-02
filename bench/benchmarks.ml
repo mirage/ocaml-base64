@@ -211,7 +211,7 @@ let test_b64 =
     ~args b64_encode_and_decode
 
 let test_old =
-  Bench.Test.create_indexed ~name:"Nocrypto"
+  Bench.Test.create_indexed ~name:"Old"
     ~args old_encode_and_decode
 
 let test_cur =
