@@ -223,8 +223,8 @@ let () =
   Alcotest.run "Base64" [
     "invariants", test_invariants;
     "codec", test_codec;
-    "rfc2045", test_strict_rfc2045;
-    "rfc2045", test_strict_with_malformed_input_rfc2045;
-    "rfc2045", test_relaxed_rfc2045;
+    "rfc2045 (0)", test_strict_rfc2045;
+    "rfc2045 (1)", test_strict_with_malformed_input_rfc2045;
+    "rfc2045 (2)", test_relaxed_rfc2045;
   ]
 
