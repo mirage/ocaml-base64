@@ -2,7 +2,7 @@
  (name base64)
  (modules unsafe base64)
  (public_name base64)
- (libraries fmt bytes))
+ (libraries bytes))
 
 (rule
  (targets unsafe.ml)
