@@ -245,7 +245,6 @@ let test_codec = [ "RFC4648 test vectors", `Quick, test_rfc4648
                  ; "RFC3548 test vectors", `Quick, test_rfc3548
                  ; "Hannes test vectors", `Quick, test_hannes
                  ; "Cfcs test vectors", `Quick, test_cfcs
-                 ; "Nocrypto test vectors", `Quick, test_nocrypto
                  ; "PHP test vectors", `Quick, test_php
                  ; "Nocrypto test vectors", `Quick, test_nocrypto ]
 
