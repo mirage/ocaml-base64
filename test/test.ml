@@ -69,6 +69,26 @@ let cfcs_tests = [
   2, 0, "", "BB";
 ]
 
+let nocrypto_tests =
+  [ "\x00\x5a\x6d\x39\x76", None
+  ; "\x5a\x6d\x39\x76", Some "\x66\x6f\x6f"
+  ; "\x5a\x6d\x39\x76\x76", None
+  ; "\x5a\x6d\x39\x76\x76\x76", None
+  ; "\x5a\x6d\x39\x76\x76\x76\x76", None
+  ; "\x5a\x6d\x39\x76\x00", None
+  ; "\x5a\x6d\x39\x76\x62\x77\x3d\x3d", Some "\x66\x6f\x6f\x6f"
+  ; "\x5a\x6d\x39\x76\x62\x77\x3d\x3d\x00", None
+  ; "\x5a\x6d\x39\x76\x62\x77\x3d\x3d\x00\x01", None
+  ; "\x5a\x6d\x39\x76\x62\x77\x3d\x3d\x00\x01\x02", None
+  ; "\x5a\x6d\x39\x76\x62\x77\x3d\x3d\x00\x01\x02\x03", None
+  ; "\x5a\x6d\x39\x76\x62\x32\x38\x3d", Some "\x66\x6f\x6f\x6f\x6f"
+  ; "\x5a\x6d\x39\x76\x62\x32\x39\x76", Some "\x66\x6f\x6f\x6f\x6f\x6f"
+  ; "YWE=", Some "aa"
+  ; "YWE==", None
+  ; "YWE===", None
+  ; "YWE=====", None
+  ; "YWE======", None ]
+
 let alphabet_size () =
   List.iter (fun (name,alphabet) ->
     Alcotest.(check int) (sprintf "Alphabet size %s = 64" name)
@@ -118,7 +138,15 @@ let test_php () =
 let test_cfcs () =
   List.iter (fun (off, len, c,r) ->
     Alcotest.(check string) (sprintf "decode %s" r) c (Base64.decode_exn ~pad:false ~off ~len r);
-  ) cfcs_tests
+  ) cfcs_tests 
+
+let test_nocrypto () =
+  List.iter (fun (input, res) ->
+    let res' = match Base64.decode ~pad:true input with
+      | Ok v -> Some v
+      | Error _ -> None in
+    Alcotest.(check (option string)) (sprintf "decode %S" input) res' res ;
+  ) nocrypto_tests
 
 exception Malformed
 exception Wrong_padding
@@ -217,7 +245,8 @@ let test_codec = [ "RFC4648 test vectors", `Quick, test_rfc4648
                  ; "RFC3548 test vectors", `Quick, test_rfc3548
                  ; "Hannes test vectors", `Quick, test_hannes
                  ; "Cfcs test vectors", `Quick, test_cfcs
-                 ; "PHP test vectors", `Quick, test_php ]
+                 ; "PHP test vectors", `Quick, test_php
+                 ; "Nocrypto test vectors", `Quick, test_nocrypto ]
 
 let () =
   Alcotest.run "Base64" [

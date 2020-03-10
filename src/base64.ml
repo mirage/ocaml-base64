@@ -65,6 +65,7 @@ let unsafe_set_be_uint16 =
    can raise and avoid appearance of unknown exceptions like an ex-nihilo
    magic rabbit (or magic money?). *)
 exception Out_of_bounds
+exception Too_much_input
 
 let get_uint8 t off =
   if off < 0 || off >= String.length t then raise Out_of_bounds ;
@@ -153,6 +154,7 @@ let decode_sub ?(pad = true) { dmap; _ } ?(off = 0) ?len input =
   let n = (len // 4) * 4 in
   let n' = (n // 4) * 3 in
   let res = Bytes.create n' in
+  let invalid_pad_overflow = pad in
 
   let get_uint8_or_padding =
     if pad then (fun t i -> if i >= len then raise Out_of_bounds ; get_uint8 t (off + i) )
@@ -233,18 +235,26 @@ let decode_sub ?(pad = true) { dmap; _ } ?(off = 0) ?len input =
       if i + 4 = n
       (* end of input in anyway *)
       then match pad with
-      | 0 -> 0
-      | 4 -> 3
+      | 0 ->
+        0
+      | 4 ->
+        (* assert (invalid_pad_overflow = false) ; *)
+        3
       (* [get_uint8] lies and if we get [4], that mean we got one or more (at
          most 4) padding character. In this situation, because we round length
          of [res] (see [n // 4]), we need to delete 3 bytes. *)
-      | pad -> pad
+      | pad ->
+        pad
       else match pad with
       | 0 -> dec (j + 3) (i + 4)
-      | 4 -> only_padding 3 (i + 4)
+      | 4 ->
+        (* assert (invalid_pad_overflow = false) ; *)
+        only_padding 3 (i + 4)
       (* Same situation than above but we should get only more padding
          characters then. *)
-      | pad -> only_padding pad (i + 4) end in
+      | pad ->
+        if invalid_pad_overflow = true then raise Too_much_input ;
+        only_padding pad (i + 4) end in
 
   match dec 0 0 with
   | 0 -> Ok (Bytes.unsafe_to_string res, 0, n')
@@ -254,6 +264,8 @@ let decode_sub ?(pad = true) { dmap; _ } ?(off = 0) ?len input =
   | exception Not_found ->
       (* appear when one character of [input] ∉ [alphabet] and this character <> '=' *)
       error_msgf "Malformed input"
+  | exception Too_much_input ->
+      error_msgf "Too much input"
 
 let decode ?pad ?(alphabet = default_alphabet) ?off ?len input =
   match decode_sub ?pad alphabet ?off ?len input with
