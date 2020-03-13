@@ -1,3 +1,9 @@
+### v3.4.0 (2020-03-13)
+
+- Fix tests about `alcotest.1.0.0` (@dinosaure, #40)
+- Be more strict about padding when we decode a base64 input (@dinosaure, @hannesm, @cfcs, #43)
+- Remove `fmt` dependency (#43)
+
 ### v3.3.0 (2019-01-30)
 
 - Remove `build` directive on dune dependency (@CraigFe, #35)
