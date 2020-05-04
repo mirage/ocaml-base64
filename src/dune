@@ -7,7 +7,8 @@
 (rule
  (targets unsafe.ml)
  (deps unsafe_pre407.ml unsafe_stable.ml)
- (action (run ../config/config.exe)))
+ (action
+  (run ../config/config.exe)))
 
 (library
  (name base64_rfc2045)
