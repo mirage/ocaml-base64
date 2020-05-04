@@ -20,15 +20,15 @@
 val default_alphabet : string
 (** A 64-character string specifying the regular Base64 alphabet. *)
 
-(** The type for decoders. *)
 type decoder
+(** The type for decoders. *)
 
+type src = [ `Manual | `Channel of in_channel | `String of string ]
 (** The type for input sources. With a [`Manual] source the client must provide
     input with {!src}. *)
-type src = [`Manual | `Channel of in_channel | `String of string]
 
 type decode =
-  [`Await | `End | `Flush of string | `Malformed of string | `Wrong_padding]
+  [ `Await | `End | `Flush of string | `Malformed of string | `Wrong_padding ]
 
 val src : decoder -> Bytes.t -> int -> int -> unit
 (** [src d s j l] provides [d] with [l] bytes to read, starting at [j] in [s].
@@ -66,19 +66,19 @@ val decoder_dangerous : decoder -> bool
     still continue to decode even if [decoder_dangerous d] returns [true].
     Nothing grow automatically internally in this state. *)
 
+type dst = [ `Channel of out_channel | `Buffer of Buffer.t | `Manual ]
 (** The type for output destinations. With a [`Manual] destination the client
     must provide output storage with {!dst}. *)
-type dst = [`Channel of out_channel | `Buffer of Buffer.t | `Manual]
 
-type encode = [`Await | `End | `Char of char]
+type encode = [ `Await | `End | `Char of char ]
 
-(** The type for Base64 (RFC2045) encoder. *)
 type encoder
+(** The type for Base64 (RFC2045) encoder. *)
 
 val encoder : dst -> encoder
 (** [encoder dst] is an encoder for Base64 (RFC2045) that outputs to [dst]. *)
 
-val encode : encoder -> encode -> [`Ok | `Partial]
+val encode : encoder -> encode -> [ `Ok | `Partial ]
 (** [encode e v]: is {ul {- [`Partial] iff [e] has a [`Manual] destination and
     needs more output storage. The client must use {!dst} to provide a new
     buffer and then call {!encode} with [`Await] until [`Ok] is returned.} {-
@@ -99,8 +99,8 @@ val encoder_dst : encoder -> dst
 val dst : encoder -> Bytes.t -> int -> int -> unit
 (** [dst e s j l] provides [e] with [l] bytes to write, starting at [j] in [s].
     This byte range is written by calls to {!encode} with [e] until [`Partial]
-    is returned. Use {!dst_rem} to know the remaining number of non-written
-    free bytes in [s]. *)
+    is returned. Use {!dst_rem} to know the remaining number of non-written free
+    bytes in [s]. *)
 
 val dst_rem : encoder -> int
 (** [dst_rem e] is the remaining number of non-written, free bytes in the last
