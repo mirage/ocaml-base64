@@ -6,8 +6,8 @@
 
 (rule
  (targets unsafe.ml)
- (deps (:config ../config/config.exe) unsafe_pre407.ml unsafe_stable.ml)
- (action (run %{config})))
+ (deps unsafe_pre407.ml unsafe_stable.ml)
+ (action (run ../config/config.exe)))
 
 (library
  (name base64_rfc2045)
