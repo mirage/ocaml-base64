@@ -184,13 +184,6 @@ let test_nocrypto () =
       Alcotest.(check (option string)) (sprintf "decode %S" input) res' res)
     nocrypto_tests
 
-let test_reynir () =
-  let r = "Hello, World!" in
-  let a = Base64.(alphabet default_alphabet) in
-  let () = Array.iteri (fun i _ -> a.(i) <- int_of_char 'A') a in
-  Alcotest.(check string) "decode encode after mutating default_alphabet"
-    r Base64.(decode_exn (encode_string r))
-
 exception Malformed
 
 exception Wrong_padding
@@ -316,7 +309,6 @@ let test_codec =
     ("Cfcs test vectors", `Quick, test_cfcs);
     ("PHP test vectors", `Quick, test_php);
     ("Nocrypto test vectors", `Quick, test_nocrypto);
-    ("Reynir test vectors", `Quick, test_reynir);
   ]
 
 let () =

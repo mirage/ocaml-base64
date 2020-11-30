@@ -45,7 +45,7 @@ val make_alphabet : string -> alphabet
 val length_alphabet : alphabet -> int
 (** Returns length of the alphabet, should be 64. *)
 
-val alphabet : alphabet -> int array
+val alphabet : alphabet -> string
 (** Returns the alphabet. *)
 
 val decode_exn :
