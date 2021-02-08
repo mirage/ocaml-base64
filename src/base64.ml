@@ -57,7 +57,8 @@ let make_alphabet alphabet =
 
 let length_alphabet { emap; _ } = Array.length emap
 
-let alphabet { emap; _ } = emap
+let alphabet { emap; _ } =
+  String.init (Array.length emap) (fun i -> Char.chr emap.(i))
 
 let default_alphabet =
   make_alphabet
