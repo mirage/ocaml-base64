@@ -269,7 +269,7 @@ let strict_base64_rfc2045_to_string x =
 let test_strict_with_malformed_input_rfc2045 =
   List.mapi
     (fun i (has, _) ->
-      Alcotest.test_case (Fmt.strf "strict rfc2045 - %02d" i) `Quick
+      Alcotest.test_case (Fmt.str "strict rfc2045 - %02d" i) `Quick
       @@ fun () ->
       try
         let _ = strict_base64_rfc2045_of_string has in
@@ -280,7 +280,7 @@ let test_strict_with_malformed_input_rfc2045 =
 let test_strict_rfc2045 =
   List.mapi
     (fun i (has, expect) ->
-      Alcotest.test_case (Fmt.strf "strict rfc2045 - %02d" i) `Quick
+      Alcotest.test_case (Fmt.str "strict rfc2045 - %02d" i) `Quick
       @@ fun () ->
       try
         let res0 = strict_base64_rfc2045_of_string has in
@@ -293,7 +293,7 @@ let test_strict_rfc2045 =
 let test_relaxed_rfc2045 =
   List.mapi
     (fun i (has, expect) ->
-      Alcotest.test_case (Fmt.strf "relaxed rfc2045 - %02d" i) `Quick
+      Alcotest.test_case (Fmt.str "relaxed rfc2045 - %02d" i) `Quick
       @@ fun () ->
       let res0 = relaxed_base64_rfc2045_of_string has in
       Alcotest.(check string) "decode(x)" res0 expect)

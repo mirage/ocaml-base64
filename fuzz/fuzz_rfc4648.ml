@@ -35,8 +35,7 @@ let pp = pp_scalar ~get:String.get ~length:String.length
 let ( <.> ) f g x = f (g x)
 
 let char_from_alphabet alphabet : string gen =
-  map [ range 64 ]
-    (String.make 1 <.> Char.chr <.> Array.unsafe_get (Base64.alphabet alphabet))
+  map [ range 64 ] (String.make 1 <.> String.get (Base64.alphabet alphabet))
 
 let random_string_from_alphabet alphabet len : string gen =
   let rec add_char_from_alphabet acc = function
@@ -83,7 +82,7 @@ let ( // ) x y =
 
 let canonic alphabet =
   let dmap = Array.make 256 (-1) in
-  Array.iteri (fun i x -> dmap.(x) <- i) (Base64.alphabet alphabet) ;
+  String.iteri (fun i x -> dmap.(Char.code x) <- i) (Base64.alphabet alphabet);
   fun (input, off, len) ->
     let real_len = String.length input in
     let input_len = len in
@@ -108,8 +107,8 @@ let canonic alphabet =
         match remainder_len with 1 -> 0x3c | 2 -> 0x30 | _ -> assert false in
       let decoded = dmap.(Char.code last) in
       let canonic = decoded land mask in
-      let encoded = (Base64.alphabet alphabet).(canonic) in
-      Bytes.set output (off + input_len - 1) (Char.chr encoded) ;
+      let encoded = (Base64.alphabet alphabet).[canonic] in
+      Bytes.set output (off + input_len - 1) encoded ;
       (Bytes.unsafe_to_string output, off, normalized_len)
 
 let isomorphism0 (input, off, len) =
@@ -145,7 +144,7 @@ let range_of_max max : (int * int) gen =
   dynamic_bind (range (max / 2)) @@ fun off ->
   map [ range (max - off) ] (fun len -> (off, len))
 
-let failf fmt = Fmt.kstrf fail fmt
+let failf fmt = Fmt.kstr fail fmt
 
 let no_exception pad off len input =
   try
