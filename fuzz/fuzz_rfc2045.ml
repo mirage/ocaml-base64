@@ -8,8 +8,8 @@ exception Decode_error of string
 
 let register_printer () =
   Printexc.register_printer (function
-    | Encode_error err -> Some (Fmt.strf "(Encoding error: %s)" err)
-    | Decode_error err -> Some (Fmt.strf "(Decoding error: %s)" err)
+    | Encode_error err -> Some (Fmt.str "(Encoding error: %s)" err)
+    | Decode_error err -> Some (Fmt.str "(Decoding error: %s)" err)
     | _ -> None)
 
 let pp_chr =

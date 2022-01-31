@@ -101,9 +101,9 @@ let old_encode_and_decode len =
 
 let args = [ 0; 10; 50; 100; 500; 1000; 2500; 5000 ]
 
-let test_b64 = Test.create_indexed ~name:"Base64" ~args b64_encode_and_decode
+let test_b64 = Bench.Test.create_indexed ~name:"Base64" ~args b64_encode_and_decode
 
-let test_old = Test.create_indexed ~name:"Old" ~args old_encode_and_decode
+let test_old = Bench.Test.create_indexed ~name:"Old" ~args old_encode_and_decode
 
 let command = Bench.make_command [ test_b64; test_old ]
 
