@@ -17,6 +17,7 @@ representation.  It is specified in RFC 4648.
 depends: [
   "ocaml" {>= "4.03.0"}
   "dune" {>= "2.0"}
+  "fmt" {with-test & >= "0.8.7"}
   "bos" {with-test}
   "rresult" {with-test}
   "alcotest" {with-test}
