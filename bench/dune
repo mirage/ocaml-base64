@@ -1,4 +1,5 @@
 (executable
  (name benchmarks)
- (enabled_if (= %{profile} benchmark))
+ (enabled_if
+  (= %{profile} benchmark))
  (libraries base64 core_bench))

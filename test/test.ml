@@ -269,8 +269,7 @@ let strict_base64_rfc2045_to_string x =
 let test_strict_with_malformed_input_rfc2045 =
   List.mapi
     (fun i (has, _) ->
-      Alcotest.test_case (Fmt.str "strict rfc2045 - %02d" i) `Quick
-      @@ fun () ->
+      Alcotest.test_case (Fmt.str "strict rfc2045 - %02d" i) `Quick @@ fun () ->
       try
         let _ = strict_base64_rfc2045_of_string has in
         Alcotest.failf "Strict parser valids malformed input: %S" has
@@ -280,8 +279,7 @@ let test_strict_with_malformed_input_rfc2045 =
 let test_strict_rfc2045 =
   List.mapi
     (fun i (has, expect) ->
-      Alcotest.test_case (Fmt.str "strict rfc2045 - %02d" i) `Quick
-      @@ fun () ->
+      Alcotest.test_case (Fmt.str "strict rfc2045 - %02d" i) `Quick @@ fun () ->
       try
         let res0 = strict_base64_rfc2045_of_string has in
         let res1 = strict_base64_rfc2045_to_string res0 in
