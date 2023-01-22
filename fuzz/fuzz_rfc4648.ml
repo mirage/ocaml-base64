@@ -82,7 +82,7 @@ let ( // ) x y =
 
 let canonic alphabet =
   let dmap = Array.make 256 (-1) in
-  String.iteri (fun i x -> dmap.(Char.code x) <- i) (Base64.alphabet alphabet);
+  String.iteri (fun i x -> dmap.(Char.code x) <- i) (Base64.alphabet alphabet) ;
   fun (input, off, len) ->
     let real_len = String.length input in
     let input_len = len in

@@ -1,11 +1,13 @@
 (executable
  (name fuzz_rfc2045)
- (enabled_if (= %{profile} fuzz))
+ (enabled_if
+  (= %{profile} fuzz))
  (modules fuzz_rfc2045)
  (libraries astring crowbar fmt base64.rfc2045))
 
 (executable
  (name fuzz_rfc4648)
- (enabled_if (= %{profile} fuzz))
+ (enabled_if
+  (= %{profile} fuzz))
  (modules fuzz_rfc4648)
  (libraries astring crowbar fmt base64))
