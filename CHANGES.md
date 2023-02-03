@@ -1,3 +1,8 @@
+### v3.5.1 (2023-01-24)
+
+- Few fixes about benchmarks and tests (#51, @tbrk, @dinosaure)
+- Add missing dependency about `fmt` and fix the compilation for OCaml 5.0 (#52, @kit-ty-kate)
+
 ### v3.5.0 (2021-02-08)
 
 - Fix support for `x-compilation` (@samoht, #44)

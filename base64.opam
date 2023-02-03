@@ -5,7 +5,7 @@ authors: [ "Thomas Gazagnaire"
            "Peter Zotov" ]
 license: "ISC"
 homepage: "https://github.com/mirage/ocaml-base64"
-doc: "http://mirage.github.io/ocaml-base64/"
+doc: "https://mirage.github.io/ocaml-base64/"
 bug-reports: "https://github.com/mirage/ocaml-base64/issues"
 dev-repo: "git+https://github.com/mirage/ocaml-base64.git"
 synopsis: "Base64 encoding for OCaml"
@@ -16,7 +16,7 @@ representation.  It is specified in RFC 4648.
 """
 depends: [
   "ocaml" {>= "4.03.0"}
-  "dune" {>= "2.0"}
+  "dune" {>= "2.3"}
   "fmt" {with-test & >= "0.8.7"}
   "bos" {with-test}
   "rresult" {with-test}
