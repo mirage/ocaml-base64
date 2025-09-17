@@ -15,7 +15,7 @@ binary data in an ASCII string format by translating it into a radix-64
 representation.  It is specified in RFC 4648.
 """
 depends: [
-  "ocaml" {>= "4.03.0"}
+  "ocaml" {>= "4.07.0"}
   "dune" {>= "2.3"}
   "fmt" {with-test & >= "0.8.7"}
   "bos" {with-test}
