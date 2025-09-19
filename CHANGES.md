@@ -1,3 +1,8 @@
+### v3.5.2 (2025-09-19)
+
+- Add `x-maintenance-intent` into the OPAM file (@hannesm, #54)
+- Remove the support of OCaml 4.07 (@copy, #55)
+
 ### v3.5.1 (2023-01-24)
 
 - Few fixes about benchmarks and tests (#51, @tbrk, @dinosaure)
